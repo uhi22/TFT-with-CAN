@@ -1,0 +1,11 @@
+# Eclipse
+.metadata
+.settings
+Debug
+Release
+*.launch
+*.bak
+*.cyclo
+*.d
+*.o
+*.su
