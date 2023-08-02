@@ -51,6 +51,10 @@ uint32_t nNumberOfCanInterrupts;
 uint32_t canRxDataUptime;
 uint16_t canRxCheckpoint;
 int16_t EVSEPresentVoltage, uCcsInlet_V;
+uint8_t temperatureChannel_1_M40;
+uint8_t temperatureChannel_2_M40;
+uint8_t temperatureChannel_3_M40;
+uint8_t temperatureCpu_M40;
 
 /* USER CODE END PV */
 
@@ -122,6 +126,12 @@ void can_irq(CAN_HandleTypeDef *pcan) {
     	uCcsInlet_V = data[2];
     	uCcsInlet_V <<=8;
     	uCcsInlet_V |= data[3];
+    }
+    if (msgHdr.StdId == 0x569) {
+    	temperatureCpu_M40 = data[0];
+    	temperatureChannel_1_M40 = data[1];
+    	temperatureChannel_2_M40 = data[2];
+    	temperatureChannel_3_M40 = data[3];
     }
   }
 }
@@ -232,6 +242,14 @@ int main(void)
   ILI9341_DrawText("checkpoint", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
   ILI9341_DrawText("EVSEPresentV", FONT2, 10, 5*LINESIZEY, GREENYELLOW, BLACK);
   ILI9341_DrawText("uCcsInlet_V", FONT3, 10, 6*LINESIZEY, GREENYELLOW, BLACK);
+
+  ILI9341_DrawText("Temperatures [celsius]", FONT1, 180, 0*LINESIZEY, GREENYELLOW, BLACK);
+  ILI9341_DrawText("T1", FONT3, 180, 1*LINESIZEY, GREENYELLOW, BLACK);
+  ILI9341_DrawText("T2", FONT3, 180, 2*LINESIZEY, GREENYELLOW, BLACK);
+  ILI9341_DrawText("T3", FONT3, 180, 3*LINESIZEY, GREENYELLOW, BLACK);
+  ILI9341_DrawText("CPU", FONT3, 180, 4*LINESIZEY, GREENYELLOW, BLACK);
+  ILI9341_DrawHollowRectangleCoord(179, 0, 309, 5*LINESIZEY, DARKCYAN);
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -263,21 +281,33 @@ int main(void)
       sprintf(BufferText, "%d  ", uCcsInlet_V);
       ILI9341_DrawText(BufferText, FONT4, 100, 6*LINESIZEY, YELLOW, BLACK);
 
+      /* Temperatures */
+      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
+      ILI9341_DrawText(BufferText, FONT4, 240, 1*LINESIZEY, YELLOW, BLACK);
+
+      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_2_M40)-40);
+      ILI9341_DrawText(BufferText, FONT4, 240, 2*LINESIZEY, YELLOW, BLACK);
+
+      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_3_M40)-40);
+      ILI9341_DrawText(BufferText, FONT4, 240, 3*LINESIZEY, YELLOW, BLACK);
+
+      sprintf(BufferText, "%d  ", ((int16_t)temperatureCpu_M40)-40);
+      ILI9341_DrawText(BufferText, FONT4, 240, 4*LINESIZEY, YELLOW, BLACK);
 
       if ((nNumberOfReceivedMessages & 0x08)) {
-    	  ILI9341_DrawRectangle(300, 0, 10, 10, GREENYELLOW);
+    	  ILI9341_DrawRectangle(310, 0, 8, 8, GREENYELLOW);
       } else {
-    	  ILI9341_DrawRectangle(300, 0, 10, 10, BLACK);
+    	  ILI9341_DrawRectangle(310, 0, 8, 8, BLACK);
       }
       if ((nNumberOfReceivedMessages & 0x04)) {
-    	  ILI9341_DrawRectangle(300, 11, 10, 10, GREENYELLOW);
+    	  ILI9341_DrawRectangle(310, 9, 8, 8, GREENYELLOW);
       } else {
-    	  ILI9341_DrawRectangle(300, 11, 10, 10, BLACK);
+    	  ILI9341_DrawRectangle(310, 9, 8, 8, BLACK);
       }
       if ((nNumberOfReceivedMessages & 0x02)) {
-    	  ILI9341_DrawRectangle(300, 22, 10, 10, GREENYELLOW);
+    	  ILI9341_DrawRectangle(310, 18, 8, 8, GREENYELLOW);
       } else {
-    	  ILI9341_DrawRectangle(300, 22, 10, 10, BLACK);
+    	  ILI9341_DrawRectangle(310, 18, 8, 8, BLACK);
       }
       i++;
       HAL_Delay(100);
