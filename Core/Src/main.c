@@ -11,6 +11,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "canbus.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -48,13 +49,7 @@ uint32_t              TxMailbox;
 uint32_t nNumberOfReceivedMessages;
 uint32_t nNumberOfCanInterrupts;
 
-uint32_t canRxDataUptime;
-uint16_t canRxCheckpoint;
-int16_t EVSEPresentVoltage, uCcsInlet_V;
-uint8_t temperatureChannel_1_M40;
-uint8_t temperatureChannel_2_M40;
-uint8_t temperatureChannel_3_M40;
-uint8_t temperatureCpu_M40;
+
 
 /* USER CODE END PV */
 
@@ -102,37 +97,12 @@ void canbus_demoTransmit(void) {
 }
 
 void can_irq(CAN_HandleTypeDef *pcan) {
-  CAN_RxHeaderTypeDef msgHdr;
-  uint8_t data[8];
   nNumberOfCanInterrupts++;
   HAL_StatusTypeDef rc;
-  rc = HAL_CAN_GetRxMessage(pcan, CAN_RX_FIFO0, &msgHdr, data);
+  rc = HAL_CAN_GetRxMessage(pcan, CAN_RX_FIFO0, &canRxMsgHdr, canRxData);
   if (rc==HAL_OK) {
     nNumberOfReceivedMessages++;
-    if (msgHdr.StdId == 0x567) {
-    	canRxDataUptime = data[0];
-    	canRxDataUptime <<=8;
-    	canRxDataUptime |= data[1];
-    	canRxDataUptime <<=8;
-    	canRxDataUptime |= data[2];
-    	canRxCheckpoint = data[3];
-    	canRxCheckpoint <<=8;
-    	canRxCheckpoint |= data[4];
-    }
-    if (msgHdr.StdId == 0x568) {
-    	EVSEPresentVoltage = data[0];
-    	EVSEPresentVoltage <<=8;
-    	EVSEPresentVoltage |= data[1];
-    	uCcsInlet_V = data[2];
-    	uCcsInlet_V <<=8;
-    	uCcsInlet_V |= data[3];
-    }
-    if (msgHdr.StdId == 0x569) {
-    	temperatureCpu_M40 = data[0];
-    	temperatureChannel_1_M40 = data[1];
-    	temperatureChannel_2_M40 = data[2];
-    	temperatureChannel_3_M40 = data[3];
-    }
+    canEvaluateReceivedMessage();
   }
 }
 
@@ -293,6 +263,18 @@ int main(void)
 
       sprintf(BufferText, "%d  ", ((int16_t)temperatureCpu_M40)-40);
       ILI9341_DrawText(BufferText, FONT4, 240, 4*LINESIZEY, YELLOW, BLACK);
+
+      if (blIoniqDetected) {
+    	  //...
+      }
+      sprintf(BufferText, "pedal %d %% ", acceleratorPedal_prc);
+      ILI9341_DrawText(BufferText, FONT4, 0, 7*LINESIZEY, GREENYELLOW, BLACK);
+
+      sprintf(BufferText, "power %3.1f kW ", PBatt_W/1000.0);
+      ILI9341_DrawText(BufferText, FONT4, 0, 8*LINESIZEY, GREENYELLOW, BLACK);
+
+      sprintf(BufferText, "spd %d km/h ", wheelspeed_FL_kmh);
+      ILI9341_DrawText(BufferText, FONT4, 0, 9*LINESIZEY, GREENYELLOW, BLACK);
 
       if ((nNumberOfReceivedMessages & 0x08)) {
     	  ILI9341_DrawRectangle(310, 0, 8, 8, GREENYELLOW);
