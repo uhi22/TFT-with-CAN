@@ -11,7 +11,7 @@ uint16_t acceleratorPedal_prc;
 int16_t IBatt_0A1;
 int16_t UBatt_0V1;
 int32_t PBatt_W;
-uint8_t blIoniqDetected;
+uint8_t blIoniqDetected=1;
 
 /* experimental data of ccs32clara, https://github.com/uhi22/ccs32clara */
 uint32_t canRxDataUptime;

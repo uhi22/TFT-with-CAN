@@ -7,6 +7,7 @@
 #include "Font64.h"
 #include "canbus.h"
 #include <stdio.h>
+#include <string.h>
 
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
@@ -14,13 +15,18 @@ extern uint32_t nNumberOfCanInterrupts;
 #define COLOR_BUFFER_SIZE 4000 /* bytes for one character. Is twice the pixel count of one character. */
 uint8_t myColorBuffer[COLOR_BUFFER_SIZE];
 uint16_t colorBufferIndex;
-static char BufferText[40];
+static char BufferText1[40];
+static char BufferText2[41];
 
 uint8_t nCurrentPage, nLastPage;
 uint16_t counterPageSwitch;
 uint16_t nMainLoops;
+float wheelspeed_FL_meterPerSecond;
+float force_N;
 
-
+int16_t simulatedPedal;
+int16_t simulatedForce_N;
+int16_t simulatedRandom;
 
 
 uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
@@ -124,38 +130,38 @@ void showpage1(uint8_t blInit) {
 		  ILI9341_DrawText("CPU", FONT3, 180, 4*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawHollowRectangleCoord(179, 0, 309, 5*LINESIZEY, DARKCYAN);
 	}
-    sprintf(BufferText, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 4);
+    sprintf(BufferText1, "%d  ", nMainLoops);
+    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 4);
     //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
     //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
 
-    sprintf(BufferText, "%ld  ", nNumberOfReceivedMessages);
-    (void)TestGraphics_drawString(BufferText, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
+    (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    sprintf(BufferText, "%ld  ", canRxDataUptime);
-    (void)TestGraphics_drawString(BufferText, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", canRxDataUptime);
+    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    sprintf(BufferText, "%d  ", canRxCheckpoint);
-    (void)TestGraphics_drawString(BufferText, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
+    sprintf(BufferText1, "%d  ", canRxCheckpoint);
+    (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
 
-    sprintf(BufferText, "%d  ", EVSEPresentVoltage);
-    (void)TestGraphics_drawString(BufferText, 0, 170, GREENYELLOW, BLACK, 7);
+    sprintf(BufferText1, "%d  ", EVSEPresentVoltage);
+    (void)TestGraphics_drawString(BufferText1, 0, 170, GREENYELLOW, BLACK, 7);
 
-    sprintf(BufferText, "%d  ", uCcsInlet_V);
-    (void)TestGraphics_drawString(BufferText, 200, 170, GREENYELLOW, BLACK, 7);
+    sprintf(BufferText1, "%d  ", uCcsInlet_V);
+    (void)TestGraphics_drawString(BufferText1, 200, 170, GREENYELLOW, BLACK, 7);
 
     /* Temperatures */
-    sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
-    (void)TestGraphics_drawString(BufferText, 240, 1*LINESIZEY, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
+    (void)TestGraphics_drawString(BufferText1, 240, 1*LINESIZEY, YELLOW, BLACK, 2);
 
-    sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_2_M40)-40);
-    (void)TestGraphics_drawString(BufferText, 240, 2*LINESIZEY, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_2_M40)-40);
+    (void)TestGraphics_drawString(BufferText1, 240, 2*LINESIZEY, YELLOW, BLACK, 2);
 
-    sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_3_M40)-40);
-    (void)TestGraphics_drawString(BufferText, 240, 3*LINESIZEY, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_3_M40)-40);
+    (void)TestGraphics_drawString(BufferText1, 240, 3*LINESIZEY, YELLOW, BLACK, 2);
 
-    sprintf(BufferText, "%d  ", ((int16_t)temperatureCpu_M40)-40);
-    (void)TestGraphics_drawString(BufferText, 240, 4*LINESIZEY, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%d  ", ((int16_t)temperatureCpu_M40)-40);
+    (void)TestGraphics_drawString(BufferText1, 240, 4*LINESIZEY, YELLOW, BLACK, 2);
 
     if ((nNumberOfReceivedMessages & 0x08)) {
   	  ILI9341_DrawRectangle(310, 0, 5, 5, GREENYELLOW);
@@ -175,9 +181,94 @@ void showpage1(uint8_t blInit) {
 
 }
 
+
+//#define BACKGROUNDCOLOR TFT_GRAY
+#define RGB_TO_TFT(r, g, b) (((r / 8) << 11) | ((g / 4) << 5) | (b / 8))
+
+#define BACKGROUNDCOLOR RGB_TO_TFT(40, 40, 40)
+#define BROWN RGB_TO_TFT(150, 60, 0)
+#define MY_ORANGE RGB_TO_TFT(255, 170, 50)
+
+uint16_t getColorFromTable(uint8_t x) {
+	if (x<10) return BLACK;
+	if (x<20) return BROWN;
+	if (x<30) return RED;
+	if (x<40) return MY_ORANGE;
+	if (x<50) return YELLOW;
+	if (x<60) return GREEN;
+	if (x<70) return BLUE;
+	if (x<80) return PINK;
+	if (x<90) return LIGHTGREY;
+	return WHITE;
+}
+
+#define diagramX0 2
+#define diagramY0 120
+#define diagramSizeX 300
+#define diagramSizeY 200
+
+#define MAX_FORCE_N 8000.0 /* Newton for maximum diagram value */
+
+void diagramTest(void) {
+  uint16_t diagColor;
+  int16_t yPixel;
+  int16_t pedalForDiagram;
+  int16_t i;
+
+  //#define USE_SIMULATION
+  #ifdef USE_SIMULATION
+    simulatedPedal++;
+    if (simulatedPedal>=100) {
+  	    simulatedPedal=0;
+  	    simulatedRandom+=150;
+  	    if (simulatedRandom>600) simulatedRandom=-1000;
+    }
+    simulatedForce_N=8000.0 * (simulatedPedal-20) / 100;
+    diagColor = getColorFromTable(simulatedPedal);
+    force_N = simulatedForce_N+simulatedRandom;
+    pedalForDiagram = simulatedPedal;
+  #else
+    /* use the real world values from CAN */
+    diagColor = getColorFromTable(wheelspeed_FL_kmh); /* map driving speed to color */
+    /* use force_N calculated from battery power and speed */
+    pedalForDiagram = acceleratorPedal_prc;
+  #endif
+
+  ILI9341_DrawHLine(diagramX0, diagramY0, diagramSizeX, DARKGREY); /* x axis */
+  ILI9341_DrawVLine(diagramX0, diagramY0-100, diagramSizeY, DARKGREY); /* y axis */
+  for (i=0; i<100; i+=10) {
+	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+1, DARKGREY); /* ticks each 10% pedal */
+	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+2, DARKGREY); /* ticks each 10% pedal */
+  }
+  ILI9341_DrawVLine(diagramX0+diagramSizeX, diagramY0, 6, DARKGREY); /* tick 100% pedal */
+  ILI9341_DrawHLine(diagramX0, diagramY0-diagramSizeY/2, 6, DARKGREY); /* tick full force */
+  ILI9341_DrawHLine(diagramX0, diagramY0+diagramSizeY/2, 6, DARKGREY); /* tick full negative force */
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram-1, diagramY0, TFT_LIGHTPINK); /* pedal marker */
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, diagramY0, TFT_LIGHTPINK); /* pedal marker */
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, diagramY0, TFT_LIGHTPINK); /* pedal marker */
+
+  yPixel = diagramY0 - force_N * (float)(diagramSizeY/2) / MAX_FORCE_N;
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, yPixel, diagColor);
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, yPixel, diagColor);
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+2, yPixel, diagColor);
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, yPixel-1, diagColor);
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, yPixel-1, diagColor);
+  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+2, yPixel-1, diagColor);
+
+
+}
+
 void showpage2(uint8_t blInit) {
 	if (blInit) {
-		ILI9341_FillScreen(BLACK);
+		ILI9341_FillScreen(BACKGROUNDCOLOR);
+	    (void)TestGraphics_drawString("100%", 280, diagramY0+13, YELLOW, BACKGROUNDCOLOR, 2);
+	    (void)TestGraphics_drawString("pedal", 280, diagramY0+28, YELLOW, BACKGROUNDCOLOR, 2);
+	    (void)TestGraphics_drawString("force", 5, diagramY0-diagramSizeY/2-20, YELLOW, BACKGROUNDCOLOR, 2);
+	    sprintf(BufferText1, "%1.0f N", MAX_FORCE_N);
+	    (void)TestGraphics_drawString(BufferText1, 12, diagramY0-diagramSizeY/2-7, YELLOW, BACKGROUNDCOLOR, 2);
+	    sprintf(BufferText1, "%1.0f N", -MAX_FORCE_N);
+	    (void)TestGraphics_drawString(BufferText1, 12, diagramY0+diagramSizeY/2-7, YELLOW, BACKGROUNDCOLOR, 2);
+
 		  //TestGraphics_DrawChar('2', 0, 180, GREENYELLOW, DARKCYAN);
 		  //TestGraphics_DrawChar('3', 80, 180, GREENYELLOW, DARKCYAN);
 		  //TestGraphics_DrawChar('4', 160, 180, GREENYELLOW, DARKCYAN);
@@ -187,27 +278,48 @@ void showpage2(uint8_t blInit) {
 		  //(void)TestGraphics_drawString("12345", 150, 190, GREENYELLOW, DARKCYAN, 7);
 
 	}
-    (void)TestGraphics_drawString("pedal %", 0, 0, YELLOW, BLACK, 2);
-	sprintf(BufferText, "%d ", acceleratorPedal_prc);
-    (void)TestGraphics_drawString(BufferText, 0, 20, YELLOW, BLACK, 6);
+    #define pedalTextX 110
+    #define pedalTextY 170
+    (void)TestGraphics_drawString("pedal %", pedalTextX, pedalTextY, YELLOW, BACKGROUNDCOLOR, 2);
+	sprintf(BufferText1, "%d ", acceleratorPedal_prc);
+	if (strlen(BufferText1)<3) {
+		sprintf(BufferText2, " %s", BufferText1);
+	}
+    (void)TestGraphics_drawString(BufferText2, pedalTextX, pedalTextY+20, YELLOW, BACKGROUNDCOLOR, 6);
 
-    (void)TestGraphics_drawString("power kW", 120, 0, YELLOW, BLACK, 2);
-	sprintf(BufferText, "%3.1f", PBatt_W/1000.0);
-	(void)TestGraphics_drawString(BufferText, 120, 20, YELLOW, BLACK, 6);
+    (void)TestGraphics_drawString("power kW", 80, 0, YELLOW, BACKGROUNDCOLOR, 2);
+	sprintf(BufferText1, "%3.1f", PBatt_W/1000.0);
+	(void)TestGraphics_drawString(BufferText1, 80, 20, YELLOW, BACKGROUNDCOLOR, 6);
 
-    (void)TestGraphics_drawString("km/h", 250, 0, YELLOW, BLACK, 2);
-	sprintf(BufferText, "%d",wheelspeed_FL_kmh);
-	(void)TestGraphics_drawString(BufferText, 250, 20, YELLOW, BLACK, 6);
+    (void)TestGraphics_drawString("km/h", 250, 170, YELLOW, BACKGROUNDCOLOR, 2);
+	sprintf(BufferText1, "%d",wheelspeed_FL_kmh);
+	(void)TestGraphics_drawString(BufferText1, 250, 190, YELLOW, BACKGROUNDCOLOR, 6);
 
-    sprintf(BufferText, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText, 150, 190, BLUE, BLACK, 7);
+    //sprintf(BufferText1, "%d  ", nMainLoops);
+    //(void)TestGraphics_drawString(BufferText1, 150, 190, BLUE, BACKGROUNDCOLOR, 7);
+
+    diagramTest();
 
 }
 
 void TestGraphics_showPage(void) {
 	nMainLoops++;
+	wheelspeed_FL_meterPerSecond = wheelspeed_FL_kmh;
+	wheelspeed_FL_meterPerSecond /= 3.6;
+	if (wheelspeed_FL_meterPerSecond>0.5) {
+	  float P_motor_W;
+	  P_motor_W = PBatt_W - 300; /* assume 300W consumption of electronics */
+	  force_N = P_motor_W / wheelspeed_FL_meterPerSecond;
+	} else {
+	  /* in case we have no speed, we assume no significant force */
+	  force_N = 0;
+	}
+	/* limit the calculated force to be inside the diagram range: */
+	if (force_N>MAX_FORCE_N) force_N = MAX_FORCE_N;
+	if (force_N<-MAX_FORCE_N) force_N = -MAX_FORCE_N;
+
 	if (nLastPage!=nCurrentPage) {
-		/* page changed. Clear and prepare static content. */
+		/* page changed. Clear and prepare the static content. */
 		if (nCurrentPage==1) showpage1(1);
 		if (nCurrentPage==2) showpage2(1);
 		nLastPage = nCurrentPage;
@@ -222,7 +334,7 @@ void TestGraphics_showPage(void) {
 	}
 	uint32_t uptime_s;
 	uptime_s = HAL_GetTick() / 1000; /* the uptime in seconds */
-	if (uptime_s>20) {
+	if (uptime_s>3) {
 		if (blIoniqDetected) {
 			nCurrentPage=2;
 		} else {
