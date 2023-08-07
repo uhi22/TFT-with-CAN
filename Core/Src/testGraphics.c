@@ -182,10 +182,9 @@ void showpage1(uint8_t blInit) {
 }
 
 
-//#define BACKGROUNDCOLOR TFT_GRAY
 #define RGB_TO_TFT(r, g, b) (((r / 8) << 11) | ((g / 4) << 5) | (b / 8))
 
-#define BACKGROUNDCOLOR RGB_TO_TFT(50, 50, 50)
+#define BACKGROUNDCOLOR RGB_TO_TFT(90, 90, 90)
 #define BROWN RGB_TO_TFT(150, 60, 0)
 #define MY_ORANGE RGB_TO_TFT(255, 170, 50)
 #define TICK_COLOR TFT_WHITESMOKE
@@ -225,10 +224,13 @@ void diagramTest(void) {
   	    simulatedRandom+=150;
   	    if (simulatedRandom>600) simulatedRandom=-1000;
     }
-    simulatedForce_N=8000.0 * (simulatedPedal-20) / 100;
+    simulatedForce_N=5000.0 * (simulatedPedal-20) / 100;
     diagColor = getColorFromTable(simulatedPedal);
     force_N = simulatedForce_N+simulatedRandom;
     pedalForDiagram = simulatedPedal;
+    acceleratorPedal_prc = simulatedPedal;
+    PBatt_W = 87654;
+    wheelspeed_FL_kmh = 123;
   #else
     /* use the real world values from CAN */
     diagColor = getColorFromTable(wheelspeed_FL_kmh); /* map driving speed to color */
@@ -268,9 +270,9 @@ void showpage2(uint8_t blInit) {
 	    (void)TestGraphics_drawString("100%", 280, diagramY0+13, YELLOW, BACKGROUNDCOLOR, 2);
 	    (void)TestGraphics_drawString("pedal", 280, diagramY0+28, YELLOW, BACKGROUNDCOLOR, 2);
 	    (void)TestGraphics_drawString("force", 5, diagramY0-diagramSizeY/2-20, YELLOW, BACKGROUNDCOLOR, 2);
-	    sprintf(BufferText1, "%1.0f N", MAX_FORCE_N);
+	    sprintf(BufferText1, "%1.0fN", MAX_FORCE_N);
 	    (void)TestGraphics_drawString(BufferText1, 12, diagramY0-diagramSizeY/2-7, YELLOW, BACKGROUNDCOLOR, 2);
-	    sprintf(BufferText1, "%1.0f N", -MAX_FORCE_N);
+	    sprintf(BufferText1, "%1.0fN", -MAX_FORCE_N);
 	    (void)TestGraphics_drawString(BufferText1, 12, diagramY0+diagramSizeY/2-7, YELLOW, BACKGROUNDCOLOR, 2);
 
 		  //TestGraphics_DrawChar('2', 0, 180, GREENYELLOW, DARKCYAN);
@@ -282,8 +284,8 @@ void showpage2(uint8_t blInit) {
 		  //(void)TestGraphics_drawString("12345", 150, 190, GREENYELLOW, DARKCYAN, 7);
 
 	}
-    #define pedalTextX 110
-    #define pedalTextY 170
+    #define pedalTextX 105
+    #define pedalTextY 198
     (void)TestGraphics_drawString("pedal %", pedalTextX, pedalTextY, YELLOW, BACKGROUNDCOLOR, 2);
 	sprintf(BufferText1, "%d  ", acceleratorPedal_prc);
 	if (strlen(BufferText1)<3) {
@@ -291,15 +293,15 @@ void showpage2(uint8_t blInit) {
 	} else {
 		sprintf(BufferText2, "%s", BufferText1);
 	}
-    (void)TestGraphics_drawString(BufferText2, pedalTextX, pedalTextY+20, YELLOW, BACKGROUNDCOLOR, 6);
+    (void)TestGraphics_drawString(BufferText2, pedalTextX, pedalTextY+15, YELLOW, BACKGROUNDCOLOR, 4);
 
-    (void)TestGraphics_drawString("power kW", 80, 0, YELLOW, BACKGROUNDCOLOR, 2);
+    (void)TestGraphics_drawString("power kW", 180, 198, YELLOW, BACKGROUNDCOLOR, 2);
 	sprintf(BufferText1, "%3.1f  ", PBatt_W/1000.0);
-	(void)TestGraphics_drawString(BufferText1, 80, 20, YELLOW, BACKGROUNDCOLOR, 6);
+	(void)TestGraphics_drawString(BufferText1, 180, 213, YELLOW, BACKGROUNDCOLOR, 4);
 
-    (void)TestGraphics_drawString("km/h", 220, 170, YELLOW, BACKGROUNDCOLOR, 2);
+    (void)TestGraphics_drawString("km/h", 263, 198, YELLOW, BACKGROUNDCOLOR, 2);
 	sprintf(BufferText1, "%d  ",wheelspeed_FL_kmh);
-	(void)TestGraphics_drawString(BufferText1, 220, 190, YELLOW, BACKGROUNDCOLOR, 6);
+	(void)TestGraphics_drawString(BufferText1, 263, 213, YELLOW, BACKGROUNDCOLOR, 4);
 
     //sprintf(BufferText1, "%d  ", nMainLoops);
     //(void)TestGraphics_drawString(BufferText1, 150, 190, BLUE, BACKGROUNDCOLOR, 7);
