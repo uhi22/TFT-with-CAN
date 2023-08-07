@@ -11,11 +11,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "canbus.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "canbus.h"
 #include <stdio.h>
+#include "testGraphics.h"
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
 /* USER CODE END Includes */
@@ -42,7 +43,6 @@ SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_tx;
 
 /* USER CODE BEGIN PV */
-uint16_t i;
 CAN_TxHeaderTypeDef   TxHeader;
 uint8_t               TxData[8];
 uint32_t              TxMailbox;
@@ -115,7 +115,7 @@ void can_irq(CAN_HandleTypeDef *pcan) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	 static char BufferText[30];
+  int i;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -148,7 +148,7 @@ int main(void)
   ILI9341_SetRotation(SCREEN_HORIZONTAL_2);
   ILI9341_DrawText("HELLO WORLD", FONT4, 90, 80, WHITE, BLACK);
   ILI9341_DrawText("github.com/uhi22/TFT-with-CAN", FONT4, 50, 110, WHITE, BLACK);
-  for(i = 50; i <= 300; i++) {
+  for(i = 50; i <= 300; i+=3) {
 	  ILI9341_DrawVLine(i, 130, 30, DARKGREEN);
 	  HAL_Delay(8);
   }
@@ -202,97 +202,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  i=0;
-#define LINESIZEY 20
-  ILI9341_FillScreen(BLACK);
-  ILI9341_DrawText("i", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("rxUpTime", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("irqs", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("checkpoint", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("EVSEPresentV", FONT2, 10, 5*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("uCcsInlet_V", FONT3, 10, 6*LINESIZEY, GREENYELLOW, BLACK);
-
-  ILI9341_DrawText("Temperatures [celsius]", FONT1, 180, 0*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("T1", FONT3, 180, 1*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("T2", FONT3, 180, 2*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("T3", FONT3, 180, 3*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawText("CPU", FONT3, 180, 4*LINESIZEY, GREENYELLOW, BLACK);
-  ILI9341_DrawHollowRectangleCoord(179, 0, 309, 5*LINESIZEY, DARKCYAN);
-
+  
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+      //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
       //HAL_Delay(100);
-      //HAL_Delay(100);
-      sprintf(BufferText, "%d  ", i);
-      ILI9341_DrawText(BufferText, FONT4, 100, 0*LINESIZEY, GREENYELLOW, BLACK);
-
-      sprintf(BufferText, "%ld  ", nNumberOfReceivedMessages);
-      ILI9341_DrawText(BufferText, FONT4, 100, 1*LINESIZEY, GREENYELLOW, BLACK);
-
-      sprintf(BufferText, "%ld  ", canRxDataUptime);
-      ILI9341_DrawText(BufferText, FONT4, 100, 2*LINESIZEY, GREENYELLOW, BLACK);
-
-      HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
-
-      sprintf(BufferText, "%ld  ", nNumberOfCanInterrupts);
-      ILI9341_DrawText(BufferText, FONT4, 100, 3*LINESIZEY, GREENYELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", canRxCheckpoint);
-      ILI9341_DrawText(BufferText, FONT4, 100, 4*LINESIZEY, YELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", EVSEPresentVoltage);
-      ILI9341_DrawText(BufferText, FONT4, 100, 5*LINESIZEY, YELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", uCcsInlet_V);
-      ILI9341_DrawText(BufferText, FONT4, 100, 6*LINESIZEY, YELLOW, BLACK);
-
-      /* Temperatures */
-      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
-      ILI9341_DrawText(BufferText, FONT4, 240, 1*LINESIZEY, YELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_2_M40)-40);
-      ILI9341_DrawText(BufferText, FONT4, 240, 2*LINESIZEY, YELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", ((int16_t)temperatureChannel_3_M40)-40);
-      ILI9341_DrawText(BufferText, FONT4, 240, 3*LINESIZEY, YELLOW, BLACK);
-
-      sprintf(BufferText, "%d  ", ((int16_t)temperatureCpu_M40)-40);
-      ILI9341_DrawText(BufferText, FONT4, 240, 4*LINESIZEY, YELLOW, BLACK);
-
-      if (blIoniqDetected) {
-    	  //...
-      }
-      sprintf(BufferText, "pedal %d %% ", acceleratorPedal_prc);
-      ILI9341_DrawText(BufferText, FONT4, 0, 7*LINESIZEY, GREENYELLOW, BLACK);
-
-      sprintf(BufferText, "power %3.1f kW ", PBatt_W/1000.0);
-      ILI9341_DrawText(BufferText, FONT4, 0, 8*LINESIZEY, GREENYELLOW, BLACK);
-
-      sprintf(BufferText, "spd %d km/h ", wheelspeed_FL_kmh);
-      ILI9341_DrawText(BufferText, FONT4, 0, 9*LINESIZEY, GREENYELLOW, BLACK);
-
-      if ((nNumberOfReceivedMessages & 0x08)) {
-    	  ILI9341_DrawRectangle(310, 0, 8, 8, GREENYELLOW);
-      } else {
-    	  ILI9341_DrawRectangle(310, 0, 8, 8, BLACK);
-      }
-      if ((nNumberOfReceivedMessages & 0x04)) {
-    	  ILI9341_DrawRectangle(310, 9, 8, 8, GREENYELLOW);
-      } else {
-    	  ILI9341_DrawRectangle(310, 9, 8, 8, BLACK);
-      }
-      if ((nNumberOfReceivedMessages & 0x02)) {
-    	  ILI9341_DrawRectangle(310, 18, 8, 8, GREENYELLOW);
-      } else {
-    	  ILI9341_DrawRectangle(310, 18, 8, 8, BLACK);
-      }
-      i++;
-      HAL_Delay(100);
+	  TestGraphics_showPage();
       //canbus_demoTransmit();
 
   }
