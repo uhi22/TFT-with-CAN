@@ -185,9 +185,10 @@ void showpage1(uint8_t blInit) {
 //#define BACKGROUNDCOLOR TFT_GRAY
 #define RGB_TO_TFT(r, g, b) (((r / 8) << 11) | ((g / 4) << 5) | (b / 8))
 
-#define BACKGROUNDCOLOR RGB_TO_TFT(40, 40, 40)
+#define BACKGROUNDCOLOR RGB_TO_TFT(50, 50, 50)
 #define BROWN RGB_TO_TFT(150, 60, 0)
 #define MY_ORANGE RGB_TO_TFT(255, 170, 50)
+#define TICK_COLOR TFT_WHITESMOKE
 
 uint16_t getColorFromTable(uint8_t x) {
 	if (x<10) return BLACK;
@@ -207,7 +208,8 @@ uint16_t getColorFromTable(uint8_t x) {
 #define diagramSizeX 300
 #define diagramSizeY 200
 
-#define MAX_FORCE_N 8000.0 /* Newton for maximum diagram value */
+#define MAX_FORCE_N 4000.0 /* Newton for maximum diagram value. 8000N is a realistic value.
+                              To have better resolution, we look only to the lower 4000N. */
 
 void diagramTest(void) {
   uint16_t diagColor;
@@ -236,13 +238,14 @@ void diagramTest(void) {
 
   ILI9341_DrawHLine(diagramX0, diagramY0, diagramSizeX, DARKGREY); /* x axis */
   ILI9341_DrawVLine(diagramX0, diagramY0-100, diagramSizeY, DARKGREY); /* y axis */
-  for (i=0; i<100; i+=10) {
-	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+1, DARKGREY); /* ticks each 10% pedal */
-	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+2, DARKGREY); /* ticks each 10% pedal */
+  for (i=10; i<100; i+=10) {
+	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+1, TICK_COLOR); /* ticks each 10% pedal */
+	  ILI9341_DrawPixel(diagramX0+i*diagramSizeX/100, diagramY0+2, TICK_COLOR); /* ticks each 10% pedal */
   }
-  ILI9341_DrawVLine(diagramX0+diagramSizeX, diagramY0, 6, DARKGREY); /* tick 100% pedal */
-  ILI9341_DrawHLine(diagramX0, diagramY0-diagramSizeY/2, 6, DARKGREY); /* tick full force */
-  ILI9341_DrawHLine(diagramX0, diagramY0+diagramSizeY/2, 6, DARKGREY); /* tick full negative force */
+  ILI9341_DrawVLine(diagramX0+diagramSizeX/2, diagramY0, 6, TICK_COLOR); /* tick 50% pedal */
+  ILI9341_DrawVLine(diagramX0+diagramSizeX, diagramY0, 6, TICK_COLOR); /* tick 100% pedal */
+  ILI9341_DrawHLine(diagramX0, diagramY0-diagramSizeY/2, 6, TICK_COLOR); /* tick full force */
+  ILI9341_DrawHLine(diagramX0, diagramY0+diagramSizeY/2, 6, TICK_COLOR); /* tick full negative force */
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram-1, diagramY0, TFT_LIGHTPINK); /* pedal marker */
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, diagramY0, TFT_LIGHTPINK); /* pedal marker */
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, diagramY0, TFT_LIGHTPINK); /* pedal marker */
@@ -251,10 +254,11 @@ void diagramTest(void) {
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, yPixel, diagColor);
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, yPixel, diagColor);
   ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+2, yPixel, diagColor);
-  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, yPixel-1, diagColor);
-  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, yPixel-1, diagColor);
-  ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+2, yPixel-1, diagColor);
-
+  #ifdef USE_DOUBLE_Y_PIXEL
+    ILI9341_DrawPixel(diagramX0+3*pedalForDiagram, yPixel-1, diagColor);
+    ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+1, yPixel-1, diagColor);
+    ILI9341_DrawPixel(diagramX0+3*pedalForDiagram+2, yPixel-1, diagColor);
+  #endif
 
 }
 
@@ -281,19 +285,21 @@ void showpage2(uint8_t blInit) {
     #define pedalTextX 110
     #define pedalTextY 170
     (void)TestGraphics_drawString("pedal %", pedalTextX, pedalTextY, YELLOW, BACKGROUNDCOLOR, 2);
-	sprintf(BufferText1, "%d ", acceleratorPedal_prc);
+	sprintf(BufferText1, "%d  ", acceleratorPedal_prc);
 	if (strlen(BufferText1)<3) {
 		sprintf(BufferText2, " %s", BufferText1);
+	} else {
+		sprintf(BufferText2, "%s", BufferText1);
 	}
     (void)TestGraphics_drawString(BufferText2, pedalTextX, pedalTextY+20, YELLOW, BACKGROUNDCOLOR, 6);
 
     (void)TestGraphics_drawString("power kW", 80, 0, YELLOW, BACKGROUNDCOLOR, 2);
-	sprintf(BufferText1, "%3.1f", PBatt_W/1000.0);
+	sprintf(BufferText1, "%3.1f  ", PBatt_W/1000.0);
 	(void)TestGraphics_drawString(BufferText1, 80, 20, YELLOW, BACKGROUNDCOLOR, 6);
 
-    (void)TestGraphics_drawString("km/h", 250, 170, YELLOW, BACKGROUNDCOLOR, 2);
-	sprintf(BufferText1, "%d",wheelspeed_FL_kmh);
-	(void)TestGraphics_drawString(BufferText1, 250, 190, YELLOW, BACKGROUNDCOLOR, 6);
+    (void)TestGraphics_drawString("km/h", 220, 170, YELLOW, BACKGROUNDCOLOR, 2);
+	sprintf(BufferText1, "%d  ",wheelspeed_FL_kmh);
+	(void)TestGraphics_drawString(BufferText1, 220, 190, YELLOW, BACKGROUNDCOLOR, 6);
 
     //sprintf(BufferText1, "%d  ", nMainLoops);
     //(void)TestGraphics_drawString(BufferText1, 150, 190, BLUE, BACKGROUNDCOLOR, 7);
