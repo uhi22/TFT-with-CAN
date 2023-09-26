@@ -12,6 +12,7 @@ extern uint8_t blIoniqDetected;
 extern uint32_t canRxDataUptime;
 extern uint16_t canRxCheckpoint;
 extern int16_t EVSEPresentVoltage, uCcsInlet_V;
+extern int16_t canDebugValue1, canDebugValue2, canDebugValue3, canDebugValue4;
 extern uint8_t temperatureChannel_1_M40;
 extern uint8_t temperatureChannel_2_M40;
 extern uint8_t temperatureChannel_3_M40;

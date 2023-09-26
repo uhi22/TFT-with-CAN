@@ -120,8 +120,9 @@ void showpage1(uint8_t blInit) {
 		  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("rxUpTime", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("checkpoint", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("EVSEPresentV", FONT2, 0, 150, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("uCcsInlet_V", FONT3, 200, 150, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("debug", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("EVSEPresentV", FONT2, 0, 170, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("uCcsInlet_V", FONT3, 200, 170, GREENYELLOW, BLACK);
 
 		  ILI9341_DrawText("Temperatures [celsius]", FONT1, 180, 0*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("T1", FONT3, 180, 1*LINESIZEY, GREENYELLOW, BLACK);
@@ -144,11 +145,23 @@ void showpage1(uint8_t blInit) {
     sprintf(BufferText1, "%d  ", canRxCheckpoint);
     (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
 
+    sprintf(BufferText1, "%d  ", canDebugValue1);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
+
+    sprintf(BufferText1, "%d  ", canDebugValue2);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+1*16, GREENYELLOW, BLACK, 2);
+
+    sprintf(BufferText1, "%d  ", canDebugValue3);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+2*16, GREENYELLOW, BLACK, 2);
+
+    sprintf(BufferText1, "%d  ", canDebugValue4);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+3*16, GREENYELLOW, BLACK, 2);
+
     sprintf(BufferText1, "%d  ", EVSEPresentVoltage);
-    (void)TestGraphics_drawString(BufferText1, 0, 170, GREENYELLOW, BLACK, 7);
+    (void)TestGraphics_drawString(BufferText1, 0, 182, GREENYELLOW, BLACK, 6);
 
     sprintf(BufferText1, "%d  ", uCcsInlet_V);
-    (void)TestGraphics_drawString(BufferText1, 200, 170, GREENYELLOW, BLACK, 7);
+    (void)TestGraphics_drawString(BufferText1, 200, 182, GREENYELLOW, BLACK, 6);
 
     /* Temperatures */
     sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
