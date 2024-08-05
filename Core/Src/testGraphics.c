@@ -323,6 +323,69 @@ void showpage2(uint8_t blInit) {
 
 }
 
+
+/* The Ioniq default page */
+void showpage3(uint8_t blInit) {
+    #define LINESIZEY 20
+	if (blInit) {
+		ILI9341_FillScreen(BLACK);
+		ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
+
+		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
+		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
+		ILI9341_DrawText("Max", FONT3, 250, 18, GREENYELLOW, BLACK);
+		ILI9341_DrawHollowRectangleCoord(179, 0, 309, 3*LINESIZEY, DARKCYAN);
+
+		ILI9341_DrawText("SOC %",    FONT3, 10, 150, GREENYELLOW, BLACK);
+		ILI9341_DrawText("PBatt kW", FONT3, 170, 150, GREENYELLOW, BLACK);
+	}
+
+    sprintf(BufferText1, "%1.1f  ", ((float)socDisp_0p5)/2);
+    (void)TestGraphics_drawString(BufferText1, 10, 165, GREENYELLOW, BLACK, 7);
+
+    sprintf(BufferText1, "%1.1f  ", ((float)PBatt_W)/1000);
+    (void)TestGraphics_drawString(BufferText1, 170, 165, GREENYELLOW, BLACK, 7);
+
+
+    sprintf(BufferText1, "%d  ", nMainLoops);
+    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+    //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
+    //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
+
+    sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
+    (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+
+
+    sprintf(BufferText1, "%d  ", TBattMin_C);
+    (void)TestGraphics_drawString(BufferText1, 180, 34, GREENYELLOW, BLACK, 4);
+
+    sprintf(BufferText1, "%d  ", TBattMax_C);
+    (void)TestGraphics_drawString(BufferText1, 250, 34, GREENYELLOW, BLACK, 4);
+
+    if ((nNumberOfReceivedMessages & 0x08)) {
+  	  ILI9341_DrawRectangle(310, 0, 5, 5, GREENYELLOW);
+    } else {
+  	  ILI9341_DrawRectangle(310, 0, 5, 5, BLACK);
+    }
+    if ((nNumberOfReceivedMessages & 0x04)) {
+  	  ILI9341_DrawRectangle(310, 9, 5, 5, GREENYELLOW);
+    } else {
+  	  ILI9341_DrawRectangle(310, 9, 5, 5, BLACK);
+    }
+    if ((nNumberOfReceivedMessages & 0x02)) {
+  	  ILI9341_DrawRectangle(310, 18, 5, 5, GREENYELLOW);
+    } else {
+  	  ILI9341_DrawRectangle(310, 18, 5, 5, BLACK);
+    }
+
+}
+
+
+
+
+
+
 void TestGraphics_showPage(void) {
 	nMainLoops++;
 	wheelspeed_FL_meterPerSecond = wheelspeed_FL_kmh;
@@ -343,21 +406,23 @@ void TestGraphics_showPage(void) {
 		/* page changed. Clear and prepare the static content. */
 		if (nCurrentPage==1) showpage1(1);
 		if (nCurrentPage==2) showpage2(1);
+		if (nCurrentPage==3) showpage3(1);
 		nLastPage = nCurrentPage;
 	}
 	if (nCurrentPage==1) showpage1(0);
 	if (nCurrentPage==2) showpage2(0);
-	counterPageSwitch++;
-	if (counterPageSwitch>30) {
-		counterPageSwitch=0;
-		nCurrentPage++;
-		if (nCurrentPage>2) nCurrentPage = 1;
-	}
+	if (nCurrentPage==3) showpage3(0);
+	//counterPageSwitch++;
+	//if (counterPageSwitch>30) {
+	//	counterPageSwitch=0;
+	//	nCurrentPage++;
+	//	if (nCurrentPage>2) nCurrentPage = 1;
+	//}
 	uint32_t uptime_s;
 	uptime_s = HAL_GetTick() / 1000; /* the uptime in seconds */
-	if (uptime_s>3) {
+	if (uptime_s>1) {
 		if (blIoniqDetected) {
-			nCurrentPage=2;
+			nCurrentPage=3;
 		} else {
 			nCurrentPage=1;
 		}

@@ -11,7 +11,9 @@ uint16_t acceleratorPedal_prc;
 int16_t IBatt_0A1;
 int16_t UBatt_0V1;
 int32_t PBatt_W;
-uint8_t blIoniqDetected=0;
+uint8_t blIoniqDetected=1;
+uint8_t socDisp_0p5;
+uint8_t TBattMin_C, TBattMax_C;
 
 /* experimental data of ccs32clara, https://github.com/uhi22/ccs32clara */
 uint32_t canRxDataUptime;
@@ -25,7 +27,9 @@ int16_t canDebugValue1, canDebugValue2, canDebugValue3, canDebugValue4;
 
 
 #define MESSAGE_ID_WHLSPD11 0x386 /* Hyundai Ioniq WHL_SPD11, see hyundai_Ioniq28Motor.dbc */
+#define MESSAGE_ID_542 0x542 /* BMS SOC */
 #define MESSAGE_ID_595 0x595 /* BMS */
+#define MESSAGE_ID_596 0x596 /* BMS temperatures */
 #define MESSAGE_ID_EMS20 0x200 /* Throttle */
 
 CAN_RxHeaderTypeDef canRxMsgHdr;
@@ -44,6 +48,11 @@ void canEvaluateReceivedMessage(void) {
 		wheelspeed_FL_kmh = tmp32;
         return;
     }
+    if (canRxMsgHdr.StdId == MESSAGE_ID_542) {
+        /* battery SOC */
+        socDisp_0p5 = canRxData[0];
+        return;
+    }
     if (canRxMsgHdr.StdId == MESSAGE_ID_595) {
         /* battery voltage and current */ 
         IBatt_0A1 = canRxData[5];
@@ -55,6 +64,12 @@ void canEvaluateReceivedMessage(void) {
         PBatt_W = ((int32_t)UBatt_0V1 * (int32_t)IBatt_0A1)/100;
         return;
     }
+    if (canRxMsgHdr.StdId == MESSAGE_ID_596) {
+        /* battery temperatures */
+        TBattMin_C = canRxData[6]; /* battery min temperature in 1°C */
+        TBattMax_C = canRxData[7]; /* battery max temperature in 1°C */
+        return;
+    }
     
     if (canRxMsgHdr.StdId == MESSAGE_ID_EMS20) {
         /* accelerator pedal */
@@ -64,48 +79,4 @@ void canEvaluateReceivedMessage(void) {
         blIoniqDetected = 1;
         return;
     }
-    
-    if (canRxMsgHdr.StdId == 0x567) {
-    	canRxDataUptime = canRxData[0];
-    	canRxDataUptime <<=8;
-    	canRxDataUptime |= canRxData[1];
-    	canRxDataUptime <<=8;
-    	canRxDataUptime |= canRxData[2];
-    	canRxCheckpoint = canRxData[3];
-    	canRxCheckpoint <<=8;
-    	canRxCheckpoint |= canRxData[4];
-        return;
-    }
-    if (canRxMsgHdr.StdId == 0x568) {
-    	EVSEPresentVoltage = canRxData[0];
-    	EVSEPresentVoltage <<=8;
-    	EVSEPresentVoltage |= canRxData[1];
-    	uCcsInlet_V = canRxData[2];
-    	uCcsInlet_V <<=8;
-    	uCcsInlet_V |= canRxData[3];
-        return;
-    }
-    if (canRxMsgHdr.StdId == 0x569) {
-    	temperatureCpu_M40 = canRxData[0];
-    	temperatureChannel_1_M40 = canRxData[1];
-    	temperatureChannel_2_M40 = canRxData[2];
-    	temperatureChannel_3_M40 = canRxData[3];
-        return;
-    }
-    if (canRxMsgHdr.StdId == 0x56A) {
-    	canDebugValue1 = canRxData[0];
-    	canDebugValue1 <<=8;
-    	canDebugValue1 |= canRxData[1];
-    	canDebugValue2 = canRxData[2];
-    	canDebugValue2 <<=8;
-    	canDebugValue2 |= canRxData[3];
-    	canDebugValue3 = canRxData[4];
-    	canDebugValue3 <<=8;
-    	canDebugValue3 |= canRxData[5];
-    	canDebugValue4 = canRxData[6];
-    	canDebugValue4 <<=8;
-    	canDebugValue4 |= canRxData[7];
-        return;
-    }
-
 }

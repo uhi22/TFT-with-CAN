@@ -7,7 +7,8 @@ extern int16_t IBatt_0A1;
 extern int16_t UBatt_0V1;
 extern int32_t PBatt_W;
 extern uint8_t blIoniqDetected;
-
+extern uint8_t socDisp_0p5;
+extern uint8_t TBattMin_C, TBattMax_C;
 
 extern uint32_t canRxDataUptime;
 extern uint16_t canRxCheckpoint;
