@@ -4,15 +4,17 @@
 #include "Font7s.h"
 #include "Font16.h"
 #include "Font32.h"
-#include "Font64.h"
+//#include "Font64.h"
 #include "canbus.h"
 #include <stdio.h>
 #include <string.h>
 
+/* fixed-size-font: e.g. this: https://github.com/idispatch/raster-fonts/blob/master/font-9x16.c */
+
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
 
-#define COLOR_BUFFER_SIZE 4000 /* bytes for one character. Is twice the pixel count of one character. */
+#define COLOR_BUFFER_SIZE 6000 /* bytes for one character. Is twice the pixel count of one character. */
 uint8_t myColorBuffer[COLOR_BUFFER_SIZE];
 uint16_t colorBufferIndex;
 static char BufferText1[40];
@@ -29,7 +31,7 @@ int16_t simulatedForce_N;
 int16_t simulatedRandom;
 
 
-uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
+uint16_t oldTestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
 {
     uint16_t width;
     uint16_t height;
@@ -55,10 +57,10 @@ uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, 
       gap = -3;
     }
    if (size == 6) {
-      charBitmapPtr = chrtbl_f64[(uint8_t)ch];
-      width = widtbl_f64[(uint8_t)ch];
-      height = chr_hgt_f64;
-      gap = -3;
+      //charBitmapPtr = chrtbl_f64[(uint8_t)ch];
+      //width = widtbl_f64[(uint8_t)ch];
+      //height = chr_hgt_f64;
+      //gap = -3;
    }
     if (size == 7) {
       charBitmapPtr = chrtbl_f7s[(uint8_t)ch];
@@ -95,6 +97,190 @@ uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, 
     HAL_SPI_Transmit(HSPI_INSTANCE, myColorBuffer, colorBufferIndex, 10);
 	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);
     return width+gap;
+}
+
+extern unsigned char console_font_12x16[];
+
+uint16_t drawChar12x16(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor) {
+    uint16_t width;
+    uint16_t height;
+    uint16_t pixelColor;
+    uint8_t const *charBitmapPtr;
+    uint16_t bitnr;
+    uint8_t mask;
+    uint8_t bytesPerLine;
+    uint8_t yFactor = 6;
+    uint8_t xFactor = 3;
+    uint8_t n,m;
+
+    width = 12;
+    height = 16;
+
+    charBitmapPtr = &console_font_12x16[2*height*(uint16_t)ch];
+
+    int i;
+    colorBufferIndex = 0;
+    bytesPerLine = (width+7)/8;
+	for (int j=0; j < height; j++)
+	{
+        bitnr = 0;
+		for (i=0; i < width; i++) {
+            mask = 1 << (7 - (bitnr%8));
+            if (charBitmapPtr[j*bytesPerLine + bitnr/8] & mask) {
+                pixelColor = color;
+             } else {
+                pixelColor = bgcolor;
+            }
+            //ILI9341_DrawPixel(X+i, Y+j, pixelColor);
+            myColorBuffer[colorBufferIndex] = (uint8_t)(pixelColor >> 8);
+            myColorBuffer[colorBufferIndex+1] = (uint8_t)pixelColor;
+            if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+              colorBufferIndex+=2;
+            }
+            for (m=1; m<xFactor; m++) {
+				myColorBuffer[colorBufferIndex] = (uint8_t)(pixelColor >> 8);
+				myColorBuffer[colorBufferIndex+1] = (uint8_t)pixelColor;
+				if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+				  colorBufferIndex+=2;
+				}
+            }
+            bitnr++;
+		}
+		for (n=1; n<yFactor; n++) {
+			for (i=0; i < xFactor*width; i++) {
+				uint16_t lineOffset = xFactor*2*width; /* pixel per line */
+				myColorBuffer[colorBufferIndex]   = myColorBuffer[colorBufferIndex-lineOffset];
+				myColorBuffer[colorBufferIndex+1] = myColorBuffer[colorBufferIndex+1-lineOffset];
+				if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+				  colorBufferIndex+=2;
+				}
+			}
+		}
+	}
+	ILI9341_SetAddress(X, Y, X+xFactor*width-1, Y+yFactor*height-1);
+	HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);
+	HAL_SPI_Transmit(HSPI_INSTANCE, myColorBuffer, colorBufferIndex, 10);
+	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);
+    return xFactor*width;
+}
+
+uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
+{
+    uint16_t width;
+    uint16_t height;
+    uint16_t pixelColor;
+    uint8_t const *charBitmapPtr;
+    int16_t gap;
+    uint16_t bitnr;
+    uint8_t mask;
+    uint8_t bytesPerLine;
+    uint8_t isDoubleWidth = 0;
+    uint8_t isDoubleHeight = 0;
+    int i;
+
+    if (size & 64) {
+    	isDoubleHeight = 1;
+    	size &= ~64;
+    }
+
+	if ((ch < 32) || (ch > 127)) return 0;
+    ch = ch - 32;
+    if (size == 2) {
+      charBitmapPtr = chrtbl_f16[(uint8_t)ch];
+      width = widtbl_f16[(uint8_t)ch];
+      height = chr_hgt_f16;
+      gap = 1;
+    }
+    if (size == 4) {
+      charBitmapPtr = chrtbl_f32[(uint8_t)ch];
+      width = widtbl_f32[(uint8_t)ch];
+      height = chr_hgt_f32;
+      gap = -3;
+    }
+   if (size == 6) {
+      //charBitmapPtr = chrtbl_f64[(uint8_t)ch];
+      //width = widtbl_f64[(uint8_t)ch];
+      //height = chr_hgt_f64;
+      //gap = -3;
+   }
+    if (size == 7) {
+      charBitmapPtr = chrtbl_f7s[(uint8_t)ch];
+      width = widtbl_f7s[(uint8_t)ch];
+      height = chr_hgt_f7s;
+      gap = 2;
+    }
+    if (size == 9) {
+    	return drawChar12x16(ch, X, Y, color, bgcolor);
+    }
+    colorBufferIndex = 0;
+    bytesPerLine = (width+7)/8;
+	for (int j=0; j < height; j++)
+	{
+        bitnr = 0;
+		for (i=0; i < width; i++)
+		{
+            mask = 1 << (7 - (bitnr%8));
+            if (charBitmapPtr[j*bytesPerLine + bitnr/8] & mask) {
+                pixelColor = color;
+             } else {
+                pixelColor = bgcolor;
+            }
+            //ILI9341_DrawPixel(X+i, Y+j, pixelColor);
+            myColorBuffer[colorBufferIndex] = (uint8_t)(pixelColor >> 8);
+            myColorBuffer[colorBufferIndex+1] = (uint8_t)pixelColor;
+            if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+              colorBufferIndex+=2;
+            }
+            if (isDoubleWidth) {
+                myColorBuffer[colorBufferIndex] = (uint8_t)(pixelColor >> 8);
+                myColorBuffer[colorBufferIndex+1] = (uint8_t)pixelColor;
+                if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+                  colorBufferIndex+=2;
+                }
+            }
+            bitnr++;
+		}
+		if (isDoubleHeight) {
+			/* we duplicate the complete last line */
+			for (i=0; i < width; i++) {
+			  uint16_t lineOffset = 2*width; /* pixel per line */
+              myColorBuffer[colorBufferIndex]   = myColorBuffer[colorBufferIndex-lineOffset];
+              myColorBuffer[colorBufferIndex+1] = myColorBuffer[colorBufferIndex+1-lineOffset];
+              if (colorBufferIndex<COLOR_BUFFER_SIZE-2) {
+                colorBufferIndex+=2;
+              }
+			}
+		}
+	}
+	if (!isDoubleWidth) {
+		if (isDoubleHeight) {
+			ILI9341_SetAddress(X, Y, X+width-1, Y+2*height-1);
+			//ILI9341_DrawColorBurst(color, height*width);
+			HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);
+			HAL_SPI_Transmit(HSPI_INSTANCE, myColorBuffer, colorBufferIndex, 10);
+			HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);
+			return width+gap;
+		} else {
+			ILI9341_SetAddress(X, Y, X+width-1, Y+height-1);
+			//ILI9341_DrawColorBurst(color, height*width);
+			HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);
+			HAL_SPI_Transmit(HSPI_INSTANCE, myColorBuffer, colorBufferIndex, 10);
+			HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);
+			return width+gap;
+		}
+	} else {
+		/* twice the size */
+		ILI9341_SetAddress(X, Y, X+2*width-1, Y+height-1);
+		//ILI9341_DrawColorBurst(color, height*width);
+		HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);
+		HAL_SPI_Transmit(HSPI_INSTANCE, myColorBuffer, colorBufferIndex, 10);
+		HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);
+		return 2*width+gap;
+	}
 }
 
 int16_t TestGraphics_drawString(char *string, int16_t poX, int16_t poY, uint16_t color, uint16_t bgcolor, uint8_t size)
@@ -338,14 +524,18 @@ void showpage3(uint8_t blInit) {
 		ILI9341_DrawHollowRectangleCoord(179, 0, 309, 3*LINESIZEY, DARKCYAN);
 
 		ILI9341_DrawText("SOC %",    FONT3, 10, 150, GREENYELLOW, BLACK);
-		ILI9341_DrawText("PBatt kW", FONT3, 170, 150, GREENYELLOW, BLACK);
+		ILI9341_DrawText("PBatt kW", FONT3, 140, 130, GREENYELLOW, BLACK);
 	}
 
     sprintf(BufferText1, "%1.1f  ", ((float)socDisp_0p5)/2);
     (void)TestGraphics_drawString(BufferText1, 10, 165, GREENYELLOW, BLACK, 7);
 
-    sprintf(BufferText1, "%1.1f  ", ((float)PBatt_W)/1000);
-    (void)TestGraphics_drawString(BufferText1, 170, 165, GREENYELLOW, BLACK, 7);
+    //ILI9341_DrawRectangle(250, 145, 60, 90, BLACK);
+    sprintf(BufferText1, "%5.1f ", ((float)PBatt_W)/1000);
+    // Font 7 is the 7-segment-font, but does not have a minus sign.
+    //(void)TestGraphics_drawString(BufferText1, 170, 165, GREENYELLOW, BLACK, 7);
+    //(void)TestGraphics_drawString(BufferText1, 140, 145, GREENYELLOW, BLACK, 6+64);
+    (void)TestGraphics_drawString(BufferText1, 140, 145, GREENYELLOW, BLACK, 9);
 
 
     sprintf(BufferText1, "%d  ", nMainLoops);
@@ -364,19 +554,19 @@ void showpage3(uint8_t blInit) {
     (void)TestGraphics_drawString(BufferText1, 250, 34, GREENYELLOW, BLACK, 4);
 
     if ((nNumberOfReceivedMessages & 0x08)) {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 0, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 0, 4, 4, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x04)) {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 9, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 9, 4, 4, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x02)) {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 18, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 18, 4, 4, BLACK);
     }
 
 }
