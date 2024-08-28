@@ -17,6 +17,7 @@
 #include "canbus.h"
 #include <stdio.h>
 #include "testGraphics.h"
+#include "flashhandler.h"
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
 /* USER CODE END Includes */
@@ -124,6 +125,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  flashhandler_saveToFlash();
 
   /* USER CODE END Init */
 

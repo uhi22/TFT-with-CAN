@@ -8,6 +8,7 @@
 #include "canbus.h"
 #include <stdio.h>
 #include <string.h>
+#include "flashhandler.h"
 
 /* fixed-size-font: e.g. this: https://github.com/idispatch/raster-fonts/blob/master/font-9x16.c */
 
@@ -589,6 +590,7 @@ void task100ms(void) {
 		timeoutcounter_595--;
 		if (timeoutcounter_595==0) {
 			/* timeout of the BMS. It is time to store the accumulated data. */
+			flashhandler_saveToFlash();
 		}
 	}
 }
