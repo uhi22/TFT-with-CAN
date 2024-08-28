@@ -13,6 +13,11 @@
 
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
+extern uint8_t timeoutcounter_595;
+extern int32_t PIntegral_Wh;
+extern int32_t IIntegral_0Ah01;
+
+uint32_t oldTime100ms;
 
 #define COLOR_BUFFER_SIZE 6000 /* bytes for one character. Is twice the pixel count of one character. */
 uint8_t myColorBuffer[COLOR_BUFFER_SIZE];
@@ -517,6 +522,8 @@ void showpage3(uint8_t blInit) {
 		ILI9341_FillScreen(BLACK);
 		ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 		ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("kWh", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("Ah", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
 
 		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
@@ -546,6 +553,11 @@ void showpage3(uint8_t blInit) {
     sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
     (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
 
+    sprintf(BufferText1, "%6.3f ", ((float)PIntegral_Wh)/1000.0);
+    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%5.2f ", ((float)IIntegral_0Ah01)/100.0);
+    (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
+
 
     sprintf(BufferText1, "%d  ", TBattMin_C);
     (void)TestGraphics_drawString(BufferText1, 180, 34, GREENYELLOW, BLACK, 4);
@@ -572,7 +584,14 @@ void showpage3(uint8_t blInit) {
 }
 
 
-
+void task100ms(void) {
+	if (timeoutcounter_595>0) {
+		timeoutcounter_595--;
+		if (timeoutcounter_595==0) {
+			/* timeout of the BMS. It is time to store the accumulated data. */
+		}
+	}
+}
 
 
 
@@ -616,5 +635,11 @@ void TestGraphics_showPage(void) {
 		} else {
 			nCurrentPage=1;
 		}
+	}
+	uint32_t t;
+	t = HAL_GetTick();
+	if (t>=oldTime100ms+100) {
+		oldTime100ms+=100;
+		task100ms();
 	}
 }

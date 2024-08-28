@@ -14,6 +14,10 @@ int32_t PBatt_W;
 uint8_t blIoniqDetected=1;
 uint8_t socDisp_0p5;
 uint8_t TBattMin_C, TBattMax_C;
+int32_t PIntegral_Wh;
+int32_t IIntegral_0Ah01;
+int32_t IIntegral_hiRes, PIntegral_hiRes;
+uint8_t timeoutcounter_595;
 
 /* experimental data of ccs32clara, https://github.com/uhi22/ccs32clara */
 uint32_t canRxDataUptime;
@@ -54,6 +58,7 @@ void canEvaluateReceivedMessage(void) {
         return;
     }
     if (canRxMsgHdr.StdId == MESSAGE_ID_595) {
+        #define PINTEGRAL_HIRES_SCALER (10*(int32_t)3600) /* Scale to Wh */
         /* battery voltage and current */ 
         IBatt_0A1 = canRxData[5];
         IBatt_0A1<<=8;
@@ -62,6 +67,29 @@ void canEvaluateReceivedMessage(void) {
         UBatt_0V1<<=8;
         UBatt_0V1 |= canRxData[6];
         PBatt_W = ((int32_t)UBatt_0V1 * (int32_t)IBatt_0A1)/100;
+        timeoutcounter_595=15; /* 15*100ms = 1.5s */
+        /* the energy */
+        PIntegral_hiRes += PBatt_W; /* integrate the power. Resolution 1W per 100ms */
+        while (PIntegral_hiRes > PINTEGRAL_HIRES_SCALER) {
+          PIntegral_hiRes -= PINTEGRAL_HIRES_SCALER;
+          PIntegral_Wh++;
+        }
+        while (PIntegral_hiRes < -PINTEGRAL_HIRES_SCALER) {
+          PIntegral_hiRes += PINTEGRAL_HIRES_SCALER;
+          PIntegral_Wh--;
+        }
+        /* Integrate the current to get the charge capacity */
+        #define IINTEGRAL_HIRES_SCALER ((int32_t)3600) /* Scale to 0.01Ah */
+        IIntegral_hiRes += IBatt_0A1; /* resolution 0.1A per 100ms, or 0.01As */
+        while (IIntegral_hiRes > IINTEGRAL_HIRES_SCALER) {
+        	IIntegral_hiRes -= IINTEGRAL_HIRES_SCALER;
+        	IIntegral_0Ah01++;
+        }
+        while (IIntegral_hiRes < -IINTEGRAL_HIRES_SCALER) {
+        	IIntegral_hiRes += IINTEGRAL_HIRES_SCALER;
+        	IIntegral_0Ah01--;
+        }
+
         return;
     }
     if (canRxMsgHdr.StdId == MESSAGE_ID_596) {
