@@ -22,12 +22,13 @@ uint8_t timeoutcounter_595;
 /* experimental data of ccs32clara, https://github.com/uhi22/ccs32clara */
 uint32_t canRxDataUptime;
 uint16_t canRxCheckpoint;
-int16_t EVSEPresentVoltage, uCcsInlet_V;
+int16_t EVSEPresentVoltage;
 uint8_t temperatureChannel_1_M40;
 uint8_t temperatureChannel_2_M40;
 uint8_t temperatureChannel_3_M40;
 uint8_t temperatureCpu_M40;
 int16_t canDebugValue1, canDebugValue2, canDebugValue3, canDebugValue4;
+float uCcsInlet_V;
 
 
 #define MESSAGE_ID_WHLSPD11 0x386 /* Hyundai Ioniq WHL_SPD11, see hyundai_Ioniq28Motor.dbc */
@@ -55,6 +56,11 @@ void canEvaluateReceivedMessage(void) {
     if (canRxMsgHdr.StdId == MESSAGE_ID_542) {
         /* battery SOC */
         socDisp_0p5 = canRxData[0];
+        /* CCS Inlet Voltage */
+    	tmp32 = canRxData[7];
+    	tmp32<<=8;
+    	tmp32 += canRxData[6];
+		uCcsInlet_V = (float)tmp32/10.0;
         return;
     }
     if (canRxMsgHdr.StdId == MESSAGE_ID_595) {

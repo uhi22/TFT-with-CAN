@@ -17,6 +17,7 @@ extern uint32_t nNumberOfCanInterrupts;
 extern uint8_t timeoutcounter_595;
 extern int32_t PIntegral_Wh;
 extern int32_t IIntegral_0Ah01;
+extern float uCcsInlet_V;
 
 uint32_t oldTime100ms;
 
@@ -352,8 +353,8 @@ void showpage1(uint8_t blInit) {
     sprintf(BufferText1, "%d  ", EVSEPresentVoltage);
     (void)TestGraphics_drawString(BufferText1, 0, 182, GREENYELLOW, BLACK, 6);
 
-    sprintf(BufferText1, "%d  ", uCcsInlet_V);
-    (void)TestGraphics_drawString(BufferText1, 200, 182, GREENYELLOW, BLACK, 6);
+    //sprintf(BufferText1, "%d  ", uCcsInlet_V);
+    //(void)TestGraphics_drawString(BufferText1, 200, 182, GREENYELLOW, BLACK, 6);
 
     /* Temperatures */
     sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
@@ -525,6 +526,8 @@ void showpage3(uint8_t blInit) {
 		ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
 		ILI9341_DrawText("kWh", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Ah", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("U_CCS", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+
 
 		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
@@ -558,6 +561,10 @@ void showpage3(uint8_t blInit) {
     (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
     sprintf(BufferText1, "%5.2f ", ((float)IIntegral_0Ah01)/100.0);
     (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
+
+    sprintf(BufferText1, "%5.1f ", uCcsInlet_V);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
+
 
 
     sprintf(BufferText1, "%d  ", TBattMin_C);
