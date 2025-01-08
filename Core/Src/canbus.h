@@ -19,6 +19,12 @@ extern uint8_t temperatureChannel_2_M40;
 extern uint8_t temperatureChannel_3_M40;
 extern uint8_t temperatureCpu_M40;
 
+extern float   BAT11_BAT_SNSR_I;
+extern uint8_t BAT11_BAT_SOC;
+extern float   BAT11_BAT_SNSR_V;
+extern float   BAT11_BAT_SNSR_Temp;
+extern uint8_t BAT11_BAT_SOH;
+
 extern CAN_RxHeaderTypeDef canRxMsgHdr;
 extern uint8_t canRxData[8];
 

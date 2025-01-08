@@ -522,12 +522,14 @@ void showpage3(uint8_t blInit) {
     #define LINESIZEY 20
 	if (blInit) {
 		ILI9341_FillScreen(BLACK);
-		ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
+		//ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
+		//ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawHollowRectangleCoord(0, 3, 150, 60, DARKCYAN);
+		ILI9341_DrawText("12V Battery", FONT1, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
+
 		ILI9341_DrawText("kWh", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Ah", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
 		ILI9341_DrawText("U_CCS", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
-
 
 		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
@@ -573,20 +575,34 @@ void showpage3(uint8_t blInit) {
     sprintf(BufferText1, "%d  ", TBattMax_C);
     (void)TestGraphics_drawString(BufferText1, 250, 34, GREENYELLOW, BLACK, 4);
 
+    /* 12V battery state */
+    /*
+    extern float   BAT11_BAT_SNSR_I;
+    extern uint8_t BAT11_BAT_SOC;
+    extern float   BAT11_BAT_SNSR_V;
+    extern float   BAT11_BAT_SNSR_Temp;
+    extern uint8_t BAT11_BAT_SOH;
+    */
+    sprintf(BufferText1, "%2.1fV %2.1fA ", BAT11_BAT_SNSR_V, BAT11_BAT_SNSR_I);
+    (void)TestGraphics_drawString(BufferText1, 4, 10, GREENYELLOW, BLACK, 4);
+    sprintf(BufferText1, "%2.0f°C %d%% %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC, BAT11_BAT_SOH);
+    (void)TestGraphics_drawString(BufferText1, 4, 30, GREENYELLOW, BLACK, 4);
+
+
     if ((nNumberOfReceivedMessages & 0x08)) {
-  	  ILI9341_DrawRectangle(310, 0, 4, 4, GREENYELLOW);
+  	  ILI9341_DrawRectangle(315, 0, 2, 2, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 0, 4, 4, BLACK);
+  	  ILI9341_DrawRectangle(315, 0, 2, 2, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x04)) {
-  	  ILI9341_DrawRectangle(310, 9, 4, 4, GREENYELLOW);
+  	  ILI9341_DrawRectangle(315, 9, 2, 2, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 9, 4, 4, BLACK);
+  	  ILI9341_DrawRectangle(315, 9, 2, 2, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x02)) {
-  	  ILI9341_DrawRectangle(310, 18, 4, 4, GREENYELLOW);
+  	  ILI9341_DrawRectangle(315, 18, 2, 2, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 18, 4, 4, BLACK);
+  	  ILI9341_DrawRectangle(315, 18, 2, 2, BLACK);
     }
 
 }

@@ -3,7 +3,8 @@
 #include "canbus.h"
 
 /* The Hyundai Ioniq messages are taken from 
-https://github.com/uhi22/IoniqMotorCAN/blob/master/Traces/hyundai_Ioniq28Motor.dbc
+- (outdated) https://github.com/uhi22/IoniqMotorCAN/blob/master/Traces/hyundai_Ioniq28Motor.dbc
+- newer: https://github.com/uhi22/Ioniq28Investigations/blob/main/CAN/hyundai_Ioniq28Motor.dbc
 */
 
 int16_t wheelspeed_FL_kmh;
@@ -18,6 +19,14 @@ int32_t PIntegral_Wh;
 int32_t IIntegral_0Ah01;
 int32_t IIntegral_hiRes, PIntegral_hiRes;
 uint8_t timeoutcounter_595;
+
+/* BAT11 Battery Sensor of the 12V battery */
+float   BAT11_BAT_SNSR_I;
+uint8_t BAT11_BAT_SOC;
+float   BAT11_BAT_SNSR_V;
+float   BAT11_BAT_SNSR_Temp;
+uint8_t BAT11_BAT_SOH;
+
 
 /* experimental data of ccs32clara, https://github.com/uhi22/ccs32clara */
 uint32_t canRxDataUptime;
@@ -36,6 +45,7 @@ float uCcsInlet_V;
 #define MESSAGE_ID_595 0x595 /* BMS */
 #define MESSAGE_ID_596 0x596 /* BMS temperatures */
 #define MESSAGE_ID_EMS20 0x200 /* Throttle */
+#define MESSAGE_ID_BAT11 1353
 
 CAN_RxHeaderTypeDef canRxMsgHdr;
 uint8_t canRxData[8];
@@ -111,6 +121,26 @@ void canEvaluateReceivedMessage(void) {
         acceleratorPedal_prc *= 100;
         acceleratorPedal_prc /= 0xFE; /* now it is scaled 0 to 100% */
         blIoniqDetected = 1;
+        return;
+    }
+    if (canRxMsgHdr.StdId == MESSAGE_ID_BAT11) {
+        /* battery sensor of the 12V battery */
+    	tmp32 = canRxData[1];
+    	tmp32<<=8;
+    	tmp32 |= canRxData[0];
+    	BAT11_BAT_SNSR_I = ((float)tmp32 * 0.01f) - 327.0f;
+    	BAT11_BAT_SOC = canRxData[2];
+    	/* BAT_SNSR_V has 14 bits starting at bit 24 */
+    	tmp32 = (canRxData[4] & 0x3F); /* take only the lower 6 bits of this byte. */
+    	tmp32<<=8; /* shift by 8, to have space for the complete 8 bits of the lower byte. */
+    	tmp32 |= canRxData[3];
+    	BAT11_BAT_SNSR_V = ((float)tmp32 * 0.001f) + 6.0f; /* 6V offset, 1mV LSB */
+    	/* BAT_SNSR_Temp has 9 bits starting at bit 38. Resolution 0.5°C, offset -40°C) */
+    	tmp32 = (canRxData[5] & 0x7F); /* take only the lower 7 bits of this byte. */
+    	tmp32<<=2; /* shift by 2, to have space for the 2 bits of the lower byte. */
+    	tmp32 |= canRxData[4]>>6; /* the highest two bits of the byte, this bits 38 and 39, are the lowest two bits of the temperature. */
+    	BAT11_BAT_SNSR_Temp=((float)tmp32 * 0.5f) - 40.0f;
+    	BAT11_BAT_SOH=canRxData[6] & 0x7F; /* start bit 48, has 7 bits, range 0 to 100 % */
         return;
     }
 }
