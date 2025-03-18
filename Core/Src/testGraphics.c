@@ -9,21 +9,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "flashhandler.h"
+#include "serialComm.h"
 
 #define USE_SIZE_2
 #define USE_SIZE_4
 //#define USE_SIZE_6
 //#define USE_SIZE_7
-//#define USE_SIZE_9
+#define USE_SIZE_9
 
 /* fixed-size-font: e.g. this: https://github.com/idispatch/raster-fonts/blob/master/font-9x16.c */
 
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
-extern uint32_t nUartRxCallbacks;
-extern uint32_t nUartRxCounterNewline;
-extern uint32_t nUartTest1, nUartTest2, nUartTest3;
-extern char strUartPower[10];
+
 
 
 extern uint8_t timeoutcounter_595;
@@ -328,85 +326,24 @@ int16_t TestGraphics_drawString(char *string, int16_t poX, int16_t poY, uint16_t
 
 
 void showpage1(uint8_t blInit) {
-    #define LINESIZEY 20
+    #define LINESIZEY 18
 	if (blInit) {
 		ILI9341_FillScreen(BLACK);
-		  ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("rxUpTime", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("checkpoint", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("debug", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("EVSEPresentV", FONT2, 0, 170, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("uCcsInlet_V", FONT3, 200, 170, GREENYELLOW, BLACK);
-
-		  ILI9341_DrawText("Temperatures [celsius]", FONT1, 180, 0*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("T1", FONT3, 180, 1*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("T2", FONT3, 180, 2*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("T3", FONT3, 180, 3*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("CPU", FONT3, 180, 4*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawHollowRectangleCoord(179, 0, 309, 5*LINESIZEY, DARKCYAN);
 	}
     sprintf(BufferText1, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 4);
-    //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
-    //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
+    (void)TestGraphics_drawString(BufferText1, 130, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartRxCallbacks);
+    (void)TestGraphics_drawString(BufferText1, 130, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartRxCounterNewline);
+    (void)TestGraphics_drawString(BufferText1, 130, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
-    (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%ld  ", canRxDataUptime);
-    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canRxCheckpoint);
-    (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
-
-    sprintf(BufferText1, "%d  ", canDebugValue1);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue2);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+1*16, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue3);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+2*16, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue4);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+3*16, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", EVSEPresentVoltage);
-    (void)TestGraphics_drawString(BufferText1, 0, 182, GREENYELLOW, BLACK, 6);
-
-    //sprintf(BufferText1, "%d  ", uCcsInlet_V);
-    //(void)TestGraphics_drawString(BufferText1, 200, 182, GREENYELLOW, BLACK, 6);
-
-    /* Temperatures */
-    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_1_M40)-40);
-    (void)TestGraphics_drawString(BufferText1, 240, 1*LINESIZEY, YELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_2_M40)-40);
-    (void)TestGraphics_drawString(BufferText1, 240, 2*LINESIZEY, YELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", ((int16_t)temperatureChannel_3_M40)-40);
-    (void)TestGraphics_drawString(BufferText1, 240, 3*LINESIZEY, YELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", ((int16_t)temperatureCpu_M40)-40);
-    (void)TestGraphics_drawString(BufferText1, 240, 4*LINESIZEY, YELLOW, BLACK, 2);
-
-    if ((nNumberOfReceivedMessages & 0x08)) {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, GREENYELLOW);
-    } else {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, BLACK);
-    }
-    if ((nNumberOfReceivedMessages & 0x04)) {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, GREENYELLOW);
-    } else {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, BLACK);
-    }
-    if ((nNumberOfReceivedMessages & 0x02)) {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, GREENYELLOW);
-    } else {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, BLACK);
-    }
-
+    (void)TestGraphics_drawString(strUartVoltage,   0, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
+    (void)TestGraphics_drawString(strUartCurrent, 200, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
+    (void)TestGraphics_drawString(strUartPower,     0, 5*LINESIZEY, GREENYELLOW, BLACK, 9);
+    (void)TestGraphics_drawString(strUartCharge,    0, 10*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartEnergy,    0, 11*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartTime,      0, 12*LINESIZEY, GREENYELLOW, BLACK, 2);
+	#undef LINESIZEY
 }
 
 
@@ -583,13 +520,6 @@ void showpage3(uint8_t blInit) {
     (void)TestGraphics_drawString(BufferText1, 130, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
     sprintf(BufferText1, "%ld  ", nUartRxCounterNewline);
     (void)TestGraphics_drawString(BufferText1, 130, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
-    sprintf(BufferText1, "%ld  ", nUartTest1);
-    (void)TestGraphics_drawString(BufferText1, 150, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
-    sprintf(BufferText1, "%ld  ", nUartTest2);
-    (void)TestGraphics_drawString(BufferText1, 150, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
-    sprintf(BufferText1, "%ld  ", nUartTest3);
-    (void)TestGraphics_drawString(BufferText1, 150, 5*LINESIZEY, GREENYELLOW, BLACK, 2);
-    (void)TestGraphics_drawString(strUartPower, 150, 6*LINESIZEY, GREENYELLOW, BLACK, 2);
 
 
     sprintf(BufferText1, "%6.3f ", ((float)PIntegral_Wh)/1000.0);
@@ -688,11 +618,7 @@ void TestGraphics_showPage(void) {
 	uint32_t uptime_s;
 	uptime_s = HAL_GetTick() / 1000; /* the uptime in seconds */
 	if (uptime_s>1) {
-		if (blIoniqDetected) {
-			nCurrentPage=3;
-		} else {
 			nCurrentPage=1;
-		}
 	}
 	uint32_t t;
 	t = HAL_GetTick();

@@ -21,6 +21,7 @@
 #include "flashhandler.h"
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
+#include "serialComm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +53,7 @@ uint8_t               TxData[8];
 uint32_t              TxMailbox;
 uint32_t nNumberOfReceivedMessages;
 uint32_t nNumberOfCanInterrupts;
-char strUartPower[10];
+
 
 
 
@@ -112,10 +113,7 @@ void can_irq(CAN_HandleTypeDef *pcan) {
   }
 }
 
-uint8_t serial_rx_byte;
-uint32_t nUartRxCallbacks;
-uint32_t nUartRxCounterNewline;
-uint32_t nUartTest1, nUartTest2, nUartTest3;
+
 
 
 /* USER CODE END 0 */
@@ -460,42 +458,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-#define UART_LINE_BUFFER_LENGTH 20
-uint8_t uart_rxlinebufferIndex;
-uint8_t uart_rxlinebuffer[UART_LINE_BUFFER_LENGTH];
-
-void uart_evaluateReceivedLine(void) {
-	/* this runs in interrupt context */
-	if (uart_rxlinebufferIndex>=3) { /* we should have at least three characters, e.g. "P=5" */
-		if (uart_rxlinebuffer[0]=='P') {
-			nUartTest1++;
-			strUartPower[0] = uart_rxlinebuffer[2];
-			strUartPower[1] = uart_rxlinebuffer[3];
-			strUartPower[2] = uart_rxlinebuffer[4];
-			strUartPower[3] = 0;
-		}
-	}
-}
-
-void evaluateReceivedByte(void) {
-	/* this runs in interrupt context */
-	if (serial_rx_byte==0x0A) {
-		nUartRxCounterNewline++;
-		uart_evaluateReceivedLine();
-		uart_rxlinebufferIndex=0;
-	} else if (serial_rx_byte>=0x20) { /* it was a printable character, so just put it into the line buffer */
-		if (uart_rxlinebufferIndex<UART_LINE_BUFFER_LENGTH) {
-			uart_rxlinebuffer[uart_rxlinebufferIndex] = serial_rx_byte;
-			uart_rxlinebufferIndex++;
-		}
-	}
-}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   HAL_UART_Receive_IT(&huart1, &serial_rx_byte, 1); /* configure that we want the callback after each received byte. */
-  evaluateReceivedByte();
-  nUartRxCallbacks++;
+  serialComm_evaluateReceivedByte();
 }
 
 /* USER CODE END 4 */
