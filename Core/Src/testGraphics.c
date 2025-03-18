@@ -10,10 +10,22 @@
 #include <string.h>
 #include "flashhandler.h"
 
+#define USE_SIZE_2
+#define USE_SIZE_4
+//#define USE_SIZE_6
+//#define USE_SIZE_7
+//#define USE_SIZE_9
+
 /* fixed-size-font: e.g. this: https://github.com/idispatch/raster-fonts/blob/master/font-9x16.c */
 
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
+extern uint32_t nUartRxCallbacks;
+extern uint32_t nUartRxCounterNewline;
+extern uint32_t nUartTest1, nUartTest2, nUartTest3;
+extern char strUartPower[10];
+
+
 extern uint8_t timeoutcounter_595;
 extern int32_t PIntegral_Wh;
 extern int32_t IIntegral_0Ah01;
@@ -193,33 +205,43 @@ uint16_t TestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, 
 
 	if ((ch < 32) || (ch > 127)) return 0;
     ch = ch - 32;
+#ifdef USE_SIZE_2
     if (size == 2) {
       charBitmapPtr = chrtbl_f16[(uint8_t)ch];
       width = widtbl_f16[(uint8_t)ch];
       height = chr_hgt_f16;
       gap = 1;
     }
+#endif
+#ifdef USE_SIZE_4
     if (size == 4) {
       charBitmapPtr = chrtbl_f32[(uint8_t)ch];
       width = widtbl_f32[(uint8_t)ch];
       height = chr_hgt_f32;
       gap = -3;
     }
+#endif
+#ifdef USE_SIZE_6
    if (size == 6) {
-      //charBitmapPtr = chrtbl_f64[(uint8_t)ch];
-      //width = widtbl_f64[(uint8_t)ch];
-      //height = chr_hgt_f64;
-      //gap = -3;
+      charBitmapPtr = chrtbl_f64[(uint8_t)ch];
+      width = widtbl_f64[(uint8_t)ch];
+      height = chr_hgt_f64;
+      gap = -3;
    }
+#endif
+#ifdef USE_SIZE_7
     if (size == 7) {
       charBitmapPtr = chrtbl_f7s[(uint8_t)ch];
       width = widtbl_f7s[(uint8_t)ch];
       height = chr_hgt_f7s;
       gap = 2;
     }
+#endif
+#ifdef USE_SIZE_9
     if (size == 9) {
     	return drawChar12x16(ch, X, Y, color, bgcolor);
     }
+#endif
     colorBufferIndex = 0;
     bytesPerLine = (width+7)/8;
 	for (int j=0; j < height; j++)
@@ -524,12 +546,12 @@ void showpage3(uint8_t blInit) {
 		ILI9341_FillScreen(BLACK);
 		//ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 		//ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawHollowRectangleCoord(0, 3, 150, 60, DARKCYAN);
+		ILI9341_DrawHollowRectangleCoord(0, 3, 150, 55, DARKCYAN);
 		ILI9341_DrawText("12V Battery", FONT1, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 
-		ILI9341_DrawText("kWh", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawText("Ah", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawText("U_CCS", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("kWh", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("Ah", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("U_CCS", FONT3, 10, 5*LINESIZEY, GREENYELLOW, BLACK);
 
 		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
@@ -552,20 +574,31 @@ void showpage3(uint8_t blInit) {
 
 
     sprintf(BufferText1, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 130, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
     //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
     //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
 
-    sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
-    (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    //sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
+    sprintf(BufferText1, "%ld  ", nUartRxCallbacks);
+    (void)TestGraphics_drawString(BufferText1, 130, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartRxCounterNewline);
+    (void)TestGraphics_drawString(BufferText1, 130, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartTest1);
+    (void)TestGraphics_drawString(BufferText1, 150, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartTest2);
+    (void)TestGraphics_drawString(BufferText1, 150, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%ld  ", nUartTest3);
+    (void)TestGraphics_drawString(BufferText1, 150, 5*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartPower, 150, 6*LINESIZEY, GREENYELLOW, BLACK, 2);
+
 
     sprintf(BufferText1, "%6.3f ", ((float)PIntegral_Wh)/1000.0);
-    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
-    sprintf(BufferText1, "%5.2f ", ((float)IIntegral_0Ah01)/100.0);
     (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%5.2f ", ((float)IIntegral_0Ah01)/100.0);
+    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
 
     sprintf(BufferText1, "%5.1f ", uCcsInlet_V);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 100, 5*LINESIZEY, GREENYELLOW, BLACK, 2);
 
 
 
@@ -585,8 +618,8 @@ void showpage3(uint8_t blInit) {
     */
     sprintf(BufferText1, "%2.1fV %2.1fA ", BAT11_BAT_SNSR_V, BAT11_BAT_SNSR_I);
     (void)TestGraphics_drawString(BufferText1, 4, 10, GREENYELLOW, BLACK, 4);
-    sprintf(BufferText1, "%2.0f°C %d%% %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC, BAT11_BAT_SOH);
-    (void)TestGraphics_drawString(BufferText1, 4, 30, GREENYELLOW, BLACK, 4);
+    sprintf(BufferText1, "%1.0fC %d%% %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC, BAT11_BAT_SOH);
+    (void)TestGraphics_drawString(BufferText1, 4, 35, GREENYELLOW, BLACK, 2);
 
 
     if ((nNumberOfReceivedMessages & 0x08)) {

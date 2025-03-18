@@ -6,6 +6,7 @@
   STM32F103C8T6 "BluePill"
   TFT with ILI9341 via SPI
   CAN
+  UART on A9/A10
 
   */
 /* USER CODE END Header */
@@ -43,12 +44,15 @@ CAN_HandleTypeDef hcan;
 SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_tx;
 
+UART_HandleTypeDef huart1;
+
 /* USER CODE BEGIN PV */
 CAN_TxHeaderTypeDef   TxHeader;
 uint8_t               TxData[8];
 uint32_t              TxMailbox;
 uint32_t nNumberOfReceivedMessages;
 uint32_t nNumberOfCanInterrupts;
+char strUartPower[10];
 
 
 
@@ -60,6 +64,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_CAN_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,6 +112,12 @@ void can_irq(CAN_HandleTypeDef *pcan) {
   }
 }
 
+uint8_t serial_rx_byte;
+uint32_t nUartRxCallbacks;
+uint32_t nUartRxCounterNewline;
+uint32_t nUartTest1, nUartTest2, nUartTest3;
+
+
 /* USER CODE END 0 */
 
 /**
@@ -141,6 +152,7 @@ int main(void)
   MX_DMA_Init();
   MX_SPI1_Init();
   MX_CAN_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   ILI9341_Init();
 
@@ -199,7 +211,7 @@ int main(void)
   //ILI9341_DrawHollowRectangleCoord(50, 50, 270, 190, DARKCYAN);
   //HAL_Delay(100);
 
-
+  HAL_UART_Receive_IT(&huart1, &serial_rx_byte, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -214,6 +226,7 @@ int main(void)
       //HAL_Delay(100);
 	  TestGraphics_showPage();
       //canbus_demoTransmit();
+	  //myUartReceive();
 
   }
   /* USER CODE END 3 */
@@ -356,6 +369,40 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+	//return;
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 19200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -413,6 +460,43 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+#define UART_LINE_BUFFER_LENGTH 20
+uint8_t uart_rxlinebufferIndex;
+uint8_t uart_rxlinebuffer[UART_LINE_BUFFER_LENGTH];
+
+void uart_evaluateReceivedLine(void) {
+	/* this runs in interrupt context */
+	if (uart_rxlinebufferIndex>=3) { /* we should have at least three characters, e.g. "P=5" */
+		if (uart_rxlinebuffer[0]=='P') {
+			nUartTest1++;
+			strUartPower[0] = uart_rxlinebuffer[2];
+			strUartPower[1] = uart_rxlinebuffer[3];
+			strUartPower[2] = uart_rxlinebuffer[4];
+			strUartPower[3] = 0;
+		}
+	}
+}
+
+void evaluateReceivedByte(void) {
+	/* this runs in interrupt context */
+	if (serial_rx_byte==0x0A) {
+		nUartRxCounterNewline++;
+		uart_evaluateReceivedLine();
+		uart_rxlinebufferIndex=0;
+	} else if (serial_rx_byte>=0x20) { /* it was a printable character, so just put it into the line buffer */
+		if (uart_rxlinebufferIndex<UART_LINE_BUFFER_LENGTH) {
+			uart_rxlinebuffer[uart_rxlinebufferIndex] = serial_rx_byte;
+			uart_rxlinebufferIndex++;
+		}
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  HAL_UART_Receive_IT(&huart1, &serial_rx_byte, 1); /* configure that we want the callback after each received byte. */
+  evaluateReceivedByte();
+  nUartRxCallbacks++;
+}
 
 /* USER CODE END 4 */
 
