@@ -337,11 +337,11 @@ void showpage1(uint8_t blInit) {
 		ILI9341_DrawHLine(0, 10*LINESIZEY+0, 318, DARKCYAN);
 		ILI9341_DrawHLine(0, 10*LINESIZEY+1, 318, DARKCYAN);
 		ILI9341_DrawHLine(0, 10*LINESIZEY+2, 318, DARKCYAN);
-		(void)TestGraphics_drawString("V",      80, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
-		(void)TestGraphics_drawString("A",     270, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
-		(void)TestGraphics_drawString("W",     200, 9*LINESIZEY, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("V",      90, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("A",     280, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("W",     260, 9*LINESIZEY, GREENYELLOW, BLACK, 2);
 		(void)TestGraphics_drawString("Ah",     80, 10*LINESIZEY+4, GREENYELLOW, BLACK, 2);
-		(void)TestGraphics_drawString("kWh",    80, 11*LINESIZEY+4, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("Wh",    80, 11*LINESIZEY+4, GREENYELLOW, BLACK, 2);
 		(void)TestGraphics_drawString("s",      80, 12*LINESIZEY+4, GREENYELLOW, BLACK, 2);
 	}
     sprintf(BufferText1, "%d  ", nMainLoops);
