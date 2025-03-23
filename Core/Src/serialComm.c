@@ -37,12 +37,14 @@ void uart_copyRxDataIntoString(char *destination) {
 void uart_evaluateReceivedLine(void) {
 	/* this runs in interrupt context */
 	if (uart_rxlinebufferIndex>=3) { /* we should have at least three characters, e.g. "P=5" */
-		if (uart_rxlinebuffer[0]=='U') { uart_copyRxDataIntoString(strUartVoltage); }
-		if (uart_rxlinebuffer[0]=='I') { uart_copyRxDataIntoString(strUartCurrent); }
-		if (uart_rxlinebuffer[0]=='P') { uart_copyRxDataIntoString(strUartPower); }
-		if (uart_rxlinebuffer[0]=='C') { uart_copyRxDataIntoString(strUartCharge); }
-		if (uart_rxlinebuffer[0]=='E') { uart_copyRxDataIntoString(strUartEnergy); }
-		if (uart_rxlinebuffer[0]=='t') { uart_copyRxDataIntoString(strUartTime); }
+		if (uart_rxlinebuffer[1]=='=') {
+			if (uart_rxlinebuffer[0]=='U') { uart_copyRxDataIntoString(strUartVoltage); }
+			if (uart_rxlinebuffer[0]=='I') { uart_copyRxDataIntoString(strUartCurrent); }
+			if (uart_rxlinebuffer[0]=='P') { uart_copyRxDataIntoString(strUartPower); }
+			if (uart_rxlinebuffer[0]=='C') { uart_copyRxDataIntoString(strUartCharge); }
+			if (uart_rxlinebuffer[0]=='E') { uart_copyRxDataIntoString(strUartEnergy); }
+			if (uart_rxlinebuffer[0]=='t') { uart_copyRxDataIntoString(strUartTime); }
+		}
 	}
 }
 

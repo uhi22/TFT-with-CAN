@@ -329,20 +329,34 @@ void showpage1(uint8_t blInit) {
     #define LINESIZEY 18
 	if (blInit) {
 		ILI9341_FillScreen(BLACK);
+		ILI9341_DrawHLine(0, 3*LINESIZEY-6, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 3*LINESIZEY-5, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 3*LINESIZEY-4, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 4*LINESIZEY+8, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 4*LINESIZEY+9, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 10*LINESIZEY+0, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 10*LINESIZEY+1, 318, DARKCYAN);
+		ILI9341_DrawHLine(0, 10*LINESIZEY+2, 318, DARKCYAN);
+		(void)TestGraphics_drawString("V",      80, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("A",     270, 3*LINESIZEY+6, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("W",     200, 9*LINESIZEY, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("Ah",     80, 10*LINESIZEY+4, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("kWh",    80, 11*LINESIZEY+4, GREENYELLOW, BLACK, 2);
+		(void)TestGraphics_drawString("s",      80, 12*LINESIZEY+4, GREENYELLOW, BLACK, 2);
 	}
     sprintf(BufferText1, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText1, 130, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 1, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
     sprintf(BufferText1, "%ld  ", nUartRxCallbacks);
-    (void)TestGraphics_drawString(BufferText1, 130, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 110, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
     sprintf(BufferText1, "%ld  ", nUartRxCounterNewline);
-    (void)TestGraphics_drawString(BufferText1, 130, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 220, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    (void)TestGraphics_drawString(strUartVoltage,   0, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
+    (void)TestGraphics_drawString(strUartVoltage,   1, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
     (void)TestGraphics_drawString(strUartCurrent, 200, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
-    (void)TestGraphics_drawString(strUartPower,     0, 5*LINESIZEY, GREENYELLOW, BLACK, 9);
-    (void)TestGraphics_drawString(strUartCharge,    0, 10*LINESIZEY, GREENYELLOW, BLACK, 2);
-    (void)TestGraphics_drawString(strUartEnergy,    0, 11*LINESIZEY, GREENYELLOW, BLACK, 2);
-    (void)TestGraphics_drawString(strUartTime,      0, 12*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartPower,     1, 5*LINESIZEY, GREENYELLOW, BLACK, 9);
+    (void)TestGraphics_drawString(strUartCharge,    1, 10*LINESIZEY+4, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartEnergy,    1, 11*LINESIZEY+4, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(strUartTime,      1, 12*LINESIZEY+4, GREENYELLOW, BLACK, 2);
 	#undef LINESIZEY
 }
 
