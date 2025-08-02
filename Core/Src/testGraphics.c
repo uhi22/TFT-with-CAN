@@ -527,21 +527,21 @@ void showpage3(uint8_t blInit) {
 		ILI9341_DrawHollowRectangleCoord(0, 3, 150, 60, DARKCYAN);
 		ILI9341_DrawText("12V Battery", FONT1, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 
-		ILI9341_DrawText("kWh", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawText("Ah", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-		ILI9341_DrawText("U_CCS", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("kWh", FONT3, 10, 5*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("Ah", FONT3, 10, 6*LINESIZEY, GREENYELLOW, BLACK);
+		ILI9341_DrawText("U_CCS", FONT3, 10, 7*LINESIZEY, GREENYELLOW, BLACK);
 
 		ILI9341_DrawText("BattTemp °C", FONT1, 180, 0, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Min", FONT3, 180, 18, GREENYELLOW, BLACK);
 		ILI9341_DrawText("Max", FONT3, 250, 18, GREENYELLOW, BLACK);
 		ILI9341_DrawHollowRectangleCoord(179, 0, 309, 3*LINESIZEY, DARKCYAN);
 
-		ILI9341_DrawText("SOC %",    FONT3, 10, 150, GREENYELLOW, BLACK);
-		ILI9341_DrawText("PBatt kW", FONT3, 140, 130, GREENYELLOW, BLACK);
+		ILI9341_DrawText("SOC %",    FONT3, 10, 170, GREENYELLOW, BLACK);
+		ILI9341_DrawText("PBatt kW", FONT3, 250, 130, GREENYELLOW, BLACK);
 	}
 
     sprintf(BufferText1, "%1.1f  ", ((float)socDisp_0p5)/2);
-    (void)TestGraphics_drawString(BufferText1, 10, 165, GREENYELLOW, BLACK, 7);
+    (void)TestGraphics_drawString(BufferText1, 10, 185, GREENYELLOW, BLACK, 7);
 
     //ILI9341_DrawRectangle(250, 145, 60, 90, BLACK);
     sprintf(BufferText1, "%5.1f ", ((float)PBatt_W)/1000);
@@ -550,22 +550,25 @@ void showpage3(uint8_t blInit) {
     //(void)TestGraphics_drawString(BufferText1, 140, 145, GREENYELLOW, BLACK, 6+64);
     (void)TestGraphics_drawString(BufferText1, 140, 145, GREENYELLOW, BLACK, 9);
 
-
+#if (0)
     sprintf(BufferText1, "%d  ", nMainLoops);
     (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
-    //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
-    //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
 
     sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
     (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+#endif
 
     sprintf(BufferText1, "%6.3f ", ((float)PIntegral_Wh)/1000.0);
-    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 100, 5*LINESIZEY, GREENYELLOW, BLACK, 2);
     sprintf(BufferText1, "%5.2f ", ((float)IIntegral_0Ah01)/100.0);
-    (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 100, 6*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    sprintf(BufferText1, "%5.1f ", uCcsInlet_V);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
+    if (uCcsInlet_V<1000) {
+      sprintf(BufferText1, "%5.1f ", uCcsInlet_V);
+    } else {
+      sprintf(BufferText1, "-      ");
+    }
+    (void)TestGraphics_drawString(BufferText1, 100, 7*LINESIZEY, GREENYELLOW, BLACK, 2);
 
 
 
@@ -585,9 +588,14 @@ void showpage3(uint8_t blInit) {
     */
     sprintf(BufferText1, "%2.1fV %2.1fA ", BAT11_BAT_SNSR_V, BAT11_BAT_SNSR_I);
     (void)TestGraphics_drawString(BufferText1, 4, 10, GREENYELLOW, BLACK, 4);
-    sprintf(BufferText1, "%2.0f°C %d%% %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC, BAT11_BAT_SOH);
-    (void)TestGraphics_drawString(BufferText1, 4, 30, GREENYELLOW, BLACK, 4);
-
+    #ifdef SHOW_12V_SOC_AND_SOH
+      /* SOC is reported with 255, SOH with 127%. So it does not make sense to show them. */
+      sprintf(BufferText1, "%2.0f°C %d%% %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC, BAT11_BAT_SOH);
+      (void)TestGraphics_drawString(BufferText1, 4, 34, GREENYELLOW, BLACK, 4);
+    #else
+      sprintf(BufferText1, "%2.0f°C %d%% ", BAT11_BAT_SNSR_Temp, BAT11_BAT_SOC);
+      (void)TestGraphics_drawString(BufferText1, 4, 34, GREENYELLOW, BLACK, 2);
+    #endif
 
     if ((nNumberOfReceivedMessages & 0x08)) {
   	  ILI9341_DrawRectangle(315, 0, 2, 2, GREENYELLOW);
