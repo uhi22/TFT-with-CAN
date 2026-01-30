@@ -12,6 +12,36 @@
 
 /* fixed-size-font: e.g. this: https://github.com/idispatch/raster-fonts/blob/master/font-9x16.c */
 
+const char strStatusMessages[] = "\
+StatusZero           \
+Waiting App Handshake\
+Stopped              \
+Schema Negotiated    \
+Session Established  \
+Services Discovered  \
+Payment Selected     \
+Power Delivery       \
+Charge Parameter Dcvy\
+Cable Check          \
+Precharging          \
+Contract Auth        \
+Authorization        \
+Current Demand       \
+Welding Detection    \
+Session Stop         \
+Stopped Forever      \
+TCP Connection Broken\
+Listening TCP        \
+TCP Connected        \
+Invalid20            \
+Invalid21            \
+Invalid22            \
+Invalid23            \
+";
+
+#define SIZE_OF_ONE_MESSAGE 21
+#define LAST_MESSAGE_INDEX 23
+
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
 extern uint8_t timeoutcounter_595;
@@ -22,7 +52,7 @@ uint32_t oldTime100ms;
 uint8_t myColorBuffer[COLOR_BUFFER_SIZE];
 uint16_t colorBufferIndex;
 static char BufferText1[40];
-static char BufferText2[41];
+//static char BufferText2[41];
 
 uint8_t nCurrentPage, nLastPage;
 uint16_t counterPageSwitch;
@@ -33,6 +63,7 @@ uint8_t debugByte1=0xfe;
 uint8_t debugByte2=0x00;
 uint8_t debugByte3=0xa5;
 extern uint8_t rawmessage678[8];
+extern uint8_t rawmessage679[8];
 
 
 uint16_t oldTestGraphics_DrawChar(char ch, uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
@@ -309,48 +340,47 @@ void showpage1(uint8_t blInit) {
 		ILI9341_FillScreen(BLACK);
 		  ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("rxUpTime", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("checkpoint", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("debug", FONT3, 10, 4*LINESIZEY, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("SOC", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("---- Target ----", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
 		  //ILI9341_DrawText("EVSEPresentV", FONT2, 0, 170, GREENYELLOW, BLACK);
 		  //ILI9341_DrawText("uCcsInlet_V", FONT3, 200, 170, GREENYELLOW, BLACK);
 
-		  ILI9341_DrawText("rawdata", FONT1, 250, 0*LINESIZEY, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x0", FONT3, 250, 1*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x1", FONT3, 250, 2*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x2", FONT3, 250, 3*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x3", FONT3, 250, 4*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x4", FONT3, 250, 5*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x5", FONT3, 250, 6*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x6", FONT3, 250, 7*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("x7", FONT3, 250, 8*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("rawdata", FONT1, 230, 0*LINESIZEY, GREENYELLOW, BLACK);
+          #define X 225
+		  ILI9341_DrawText("x0", FONT3, X, 1*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x1", FONT3, X, 2*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x2", FONT3, X, 3*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x3", FONT3, X, 4*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x4", FONT3, X, 5*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x5", FONT3, X, 6*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x6", FONT3, X, 7*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("x7", FONT3, X, 8*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
 		  //ILI9341_DrawHollowRectangleCoord(228, 0, 312, 9*LINESIZEY_RIGHTSIDE, DARKCYAN);
+          #undef X
 	}
     sprintf(BufferText1, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 4);
+    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
     //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
     //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
 
     sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
     (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
 
-    sprintf(BufferText1, "%ld  ", canRxDataUptime);
-    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, GREENYELLOW, BLACK, 2);
+    sprintf(BufferText1, "%d %%", rawmessage678[1]);
+    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, YELLOW, BLACK, 4);
 
-    sprintf(BufferText1, "%d  ", canRxCheckpoint);
-    (void)TestGraphics_drawString(BufferText1, 100, 3*LINESIZEY, GREENYELLOW, BLACK, 4);
+    uint32_t u, i;
+    u=rawmessage679[1];
+    u<<=8;
+    u|=rawmessage679[0];
+    i=rawmessage679[3];
+    i<<=8;
+    i|=rawmessage679[2];
+    sprintf(BufferText1, "%ld V %ld A   ", u, i);
+    (void)TestGraphics_drawString(BufferText1, 1, 76, YELLOW, BLACK, 4);
 
-    sprintf(BufferText1, "%d  ", canDebugValue1);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue2);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+1*16, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue3);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+2*16, GREENYELLOW, BLACK, 2);
-
-    sprintf(BufferText1, "%d  ", canDebugValue4);
-    (void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY+3*16, GREENYELLOW, BLACK, 2);
+    //sprintf(BufferText1, "%d  ", canDebugValue1);
+    //(void)TestGraphics_drawString(BufferText1, 100, 4*LINESIZEY, GREENYELLOW, BLACK, 2);
 
     //sprintf(BufferText1, "%d  ", EVSEPresentVoltage);
     //(void)TestGraphics_drawString(BufferText1, 0, 182, GREENYELLOW, BLACK, 6);
@@ -359,42 +389,64 @@ void showpage1(uint8_t blInit) {
     //(void)TestGraphics_drawString(BufferText1, 200, 182, GREENYELLOW, BLACK, 6);
 
     /* debug data on the right side */
+    #define X 262
     sprintf(BufferText1, "%02x ", rawmessage678[0]);
-    (void)TestGraphics_drawString(BufferText1, 280, 1*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
-
+    (void)TestGraphics_drawString(BufferText1, X, 1*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[1]);
-    (void)TestGraphics_drawString(BufferText1, 280, 2*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
-
+    (void)TestGraphics_drawString(BufferText1, X, 2*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[2]);
-    (void)TestGraphics_drawString(BufferText1, 280, 3*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
-
+    (void)TestGraphics_drawString(BufferText1, X, 3*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[3]);
-    (void)TestGraphics_drawString(BufferText1, 280, 4*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
-
+    (void)TestGraphics_drawString(BufferText1, X, 4*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[4]);
-    (void)TestGraphics_drawString(BufferText1, 280, 5*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
-
+    (void)TestGraphics_drawString(BufferText1, X, 5*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[5]);
-    (void)TestGraphics_drawString(BufferText1, 280, 6*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, 6*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[6]);
-    (void)TestGraphics_drawString(BufferText1, 280, 7*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, 7*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[7]);
-    (void)TestGraphics_drawString(BufferText1, 280, 8*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, 8*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    #undef X
+
+    #define X 290
+    sprintf(BufferText1, "%02x ", rawmessage679[0]);
+    (void)TestGraphics_drawString(BufferText1, X, 1*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[1]);
+    (void)TestGraphics_drawString(BufferText1, X, 2*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[2]);
+    (void)TestGraphics_drawString(BufferText1, X, 3*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[3]);
+    (void)TestGraphics_drawString(BufferText1, X, 4*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[4]);
+    (void)TestGraphics_drawString(BufferText1, X, 5*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[5]);
+    (void)TestGraphics_drawString(BufferText1, X, 6*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[6]);
+    (void)TestGraphics_drawString(BufferText1, X, 7*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    sprintf(BufferText1, "%02x ", rawmessage679[7]);
+    (void)TestGraphics_drawString(BufferText1, X, 8*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    #undef X
+
+    uint8_t messageIndex = rawmessage678[0];
+    if (messageIndex>LAST_MESSAGE_INDEX) messageIndex = LAST_MESSAGE_INDEX;
+    memcpy(BufferText1, strStatusMessages+SIZE_OF_ONE_MESSAGE*messageIndex, SIZE_OF_ONE_MESSAGE);
+    BufferText1[SIZE_OF_ONE_MESSAGE]=0;
+    (void)TestGraphics_drawString(BufferText1, 1, 205, YELLOW, BLACK, 4);
 
     if ((nNumberOfReceivedMessages & 0x08)) {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 0, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 0, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 0, 4, 4, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x04)) {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 9, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 9, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 9, 4, 4, BLACK);
     }
     if ((nNumberOfReceivedMessages & 0x02)) {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, GREENYELLOW);
+  	  ILI9341_DrawRectangle(310, 18, 4, 4, GREENYELLOW);
     } else {
-  	  ILI9341_DrawRectangle(310, 18, 5, 5, BLACK);
+  	  ILI9341_DrawRectangle(310, 18, 4, 4, BLACK);
     }
 
 }
