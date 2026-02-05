@@ -21,7 +21,7 @@ Session Established     \
 Services Discovered     \
 Payment Selected        \
 Power Delivery          \
-Charge Parameter Dcvy   \
+Charge Param Dcvy       \
 Cable Check             \
 Precharging             \
 Contract Auth           \
@@ -33,14 +33,17 @@ Stopped Forever         \
 TCP Connection Broken   \
 Listening TCP           \
 TCP Connected           \
-Invalid20               \
-Invalid21               \
-Invalid22               \
+SLAC Param Req          \
+SLAC Sounding           \
+SLAC Match              \
 Invalid23               \
+Invalid24               \
+Invalid25               \
+Invalid26               \
 ";
 
 #define SIZE_OF_ONE_MESSAGE 24
-#define LAST_MESSAGE_INDEX 23
+#define LAST_MESSAGE_INDEX 26
 
 extern uint32_t nNumberOfReceivedMessages;
 extern uint32_t nNumberOfCanInterrupts;
