@@ -342,7 +342,7 @@ void showpage1(uint8_t blInit) {
     #define LINESIZEY_RIGHTSIDE 14
 	if (blInit) {
 		ILI9341_FillScreen(BLACK);
-		  ILI9341_DrawText("loops", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("time", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("SOC", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("---- Target ----", FONT3, 10, 3*LINESIZEY, GREENYELLOW, BLACK);
@@ -363,16 +363,21 @@ void showpage1(uint8_t blInit) {
 		  //ILI9341_DrawHollowRectangleCoord(228, 0, 312, 9*LINESIZEY_RIGHTSIDE, DARKCYAN);
           #undef X
 	}
-    sprintf(BufferText1, "%d  ", nMainLoops);
-    (void)TestGraphics_drawString(BufferText1, 100, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+    //sprintf(BufferText1, "%d  ", nMainLoops);
+    //(void)TestGraphics_drawString(BufferText1, 70, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
+
+    float t_s = 0.001*(float)HAL_GetTick();
+    sprintf(BufferText1, "%1.1f s ", t_s);
+    (void)TestGraphics_drawString(BufferText1, 90, 0*LINESIZEY, YELLOW, BLACK, 4);
+
     //(void)TestGraphics_drawString(BufferText, 150, 130, GREENYELLOW, DARKCYAN, 6);
     //(void)TestGraphics_drawString(BufferText, 150, 190, YELLOW, BLUE, 7);
 
     sprintf(BufferText1, "%ld  ", nNumberOfReceivedMessages);
-    (void)TestGraphics_drawString(BufferText1, 100, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, 90, 1*LINESIZEY, GREENYELLOW, BLACK, 2);
 
     sprintf(BufferText1, "%d %%", rawmessage678[1]); /* SOC */
-    (void)TestGraphics_drawString(BufferText1, 100, 2*LINESIZEY, YELLOW, BLACK, 4);
+    (void)TestGraphics_drawString(BufferText1, 90, 2*LINESIZEY, YELLOW, BLACK, 4);
 
     uint32_t u, i;
     /* target voltage and target current */
