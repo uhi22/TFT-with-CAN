@@ -49,6 +49,10 @@ uint8_t               TxData[8];
 uint32_t              TxMailbox;
 uint32_t nNumberOfReceivedMessages;
 uint32_t nNumberOfCanInterrupts;
+uint32_t mainloops;
+uint8_t blinkMask;
+uint8_t canReceivedTimer;
+
 
 
 
@@ -99,6 +103,7 @@ void canbus_demoTransmit(void) {
 
 void can_irq(CAN_HandleTypeDef *pcan) {
   nNumberOfCanInterrupts++;
+  canReceivedTimer=5; /* for 5 mainloop cycles we want to indicate that there was activity on CAN. */
   HAL_StatusTypeDef rc;
   rc = HAL_CAN_GetRxMessage(pcan, CAN_RX_FIFO0, &canRxMsgHdr, canRxData);
   if (rc==HAL_OK) {
@@ -210,8 +215,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
-      //HAL_Delay(100);
+	  mainloops++;
+	  if (canReceivedTimer>0) {
+		  /* we have recently received something from CAN bus */
+		  canReceivedTimer--;
+		  blinkMask = 1; /* The blink LED shall look on the lowest bit -> fastest blinking */
+	  } else {
+		  /* nothing seen on CAN -> We want a slow blinking, so we look on a slower bit. */
+		  blinkMask = 4;
+	  }
+	  if (mainloops & blinkMask) {
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1); /* turn green LED on */
+	  } else {
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0); /* turn green LED off */
+	  }
 	  TestGraphics_showPage();
       //canbus_demoTransmit();
 
