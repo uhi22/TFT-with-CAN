@@ -66,7 +66,7 @@ This may be confusing: If flashing in the CubeIDE, the software just starts runn
 
 ### Pitfall 3: Without CAN transceiver, the STM32 may block the execution
 
-When testing just the display, without a CAN transceiver, the CAN controller may block the run, because it sees no high level on the CANRX line. Workaround: Connect CANRX to CANTX, to simulate a valid CAN connection. Fun fact: The fake clones do not care about the presence of a CAN transceiver, they also work without the brigde.
+When testing just the display, without a CAN transceiver, the CAN controller may block the run, because it sees no high level on the CANRX line. Workaround: Connect CANRX to CANTX, to simulate a valid CAN connection. Fun fact: The fake clones do not care about the presence of a CAN transceiver, they also work without the bridge.
 
 ### Pitfall 4: Faked CAN transceivers
 
