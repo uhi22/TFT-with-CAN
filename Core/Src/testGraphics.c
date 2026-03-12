@@ -342,6 +342,7 @@ void showpage1(uint8_t blInit) {
     #define LINESIZEY_RIGHTSIDE 14
 	if (blInit) {
 		ILI9341_FillScreen(BLACK);
+		//ILI9341_FillScreen(BLUE);
 		  ILI9341_DrawText("time", FONT3, 10, 0*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("rxCount", FONT3, 10, 1*LINESIZEY, GREENYELLOW, BLACK);
 		  ILI9341_DrawText("SOC", FONT3, 10, 2*LINESIZEY, GREENYELLOW, BLACK);
@@ -350,18 +351,22 @@ void showpage1(uint8_t blInit) {
 		  //ILI9341_DrawText("EVSEPresentV", FONT2, 0, 170, GREENYELLOW, BLACK);
 		  //ILI9341_DrawText("uCcsInlet_V", FONT3, 200, 170, GREENYELLOW, BLACK);
 
-		  ILI9341_DrawText("rawdata", FONT1, 220, 0*LINESIZEY, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("rawdata", FONT1, 220, 0, GREENYELLOW, BLACK);
           #define X 220
-		  ILI9341_DrawText("0", FONT3, X, 1*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("1", FONT3, X, 2*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("2", FONT3, X, 3*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("3", FONT3, X, 4*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("4", FONT3, X, 5*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("5", FONT3, X, 6*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("6", FONT3, X, 7*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
-		  ILI9341_DrawText("7", FONT3, X, 8*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+          #define Y0RS 13 /* Y0 of the right side table */
+		  ILI9341_DrawText("0", FONT3, X, Y0RS + 0*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("1", FONT3, X, Y0RS + 1*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("2", FONT3, X, Y0RS + 2*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("3", FONT3, X, Y0RS + 3*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("4", FONT3, X, Y0RS + 4*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("5", FONT3, X, Y0RS + 5*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("6", FONT3, X, Y0RS + 6*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
+		  ILI9341_DrawText("7", FONT3, X, Y0RS + 7*LINESIZEY_RIGHTSIDE, GREENYELLOW, BLACK);
 		  //ILI9341_DrawHollowRectangleCoord(228, 0, 312, 9*LINESIZEY_RIGHTSIDE, DARKCYAN);
           #undef X
+
+		  ILI9341_DrawText("logfile", FONT3, 220, 129, GREENYELLOW, BLACK);
+
 	}
     //sprintf(BufferText1, "%d  ", nMainLoops);
     //(void)TestGraphics_drawString(BufferText1, 70, 0*LINESIZEY, GREENYELLOW, BLACK, 2);
@@ -412,21 +417,21 @@ void showpage1(uint8_t blInit) {
     /* debug data on the right side */
     #define X 242
     sprintf(BufferText1, "%02x ", rawmessage678[0]);
-    (void)TestGraphics_drawString(BufferText1, X, 1*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 0*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[1]);
-    (void)TestGraphics_drawString(BufferText1, X, 2*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 1*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[2]);
-    (void)TestGraphics_drawString(BufferText1, X, 3*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 2*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[3]);
-    (void)TestGraphics_drawString(BufferText1, X, 4*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 3*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[4]);
-    (void)TestGraphics_drawString(BufferText1, X, 5*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 4*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[5]);
-    (void)TestGraphics_drawString(BufferText1, X, 6*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 5*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[6]);
-    (void)TestGraphics_drawString(BufferText1, X, 7*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 6*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     sprintf(BufferText1, "%02x ", rawmessage678[7]);
-    (void)TestGraphics_drawString(BufferText1, X, 8*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
+    (void)TestGraphics_drawString(BufferText1, X, Y0RS + 7*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
     #undef X
 
     #define X 265
@@ -467,11 +472,28 @@ void showpage1(uint8_t blInit) {
 	(void)TestGraphics_drawString(BufferText1, X, 8*LINESIZEY_RIGHTSIDE-1, YELLOW, BLACK, 2);
 	#undef X
 
+	/* show the status message. So translate the message index to the ascii string */
     uint8_t messageIndex = rawmessage678[0];
+    static uint8_t lastMessageIndex = 0xff;
     if (messageIndex>LAST_MESSAGE_INDEX) messageIndex = LAST_MESSAGE_INDEX;
-    memcpy(BufferText1, strStatusMessages+SIZE_OF_ONE_MESSAGE*messageIndex, SIZE_OF_ONE_MESSAGE);
-    BufferText1[SIZE_OF_ONE_MESSAGE]=0;
-    (void)TestGraphics_drawString(BufferText1, 1, 205, YELLOW, BLACK, 4);
+    if (messageIndex != lastMessageIndex) {
+    	/* update the string only on change, to avoid flickering
+    	 * and waste of runtime */
+    	ILI9341_DrawRectangle(0, 213, 320, 240-213, BLACK); /* clear the complete area */
+		memcpy(BufferText1, strStatusMessages+SIZE_OF_ONE_MESSAGE*messageIndex, SIZE_OF_ONE_MESSAGE);
+    	BufferText1[SIZE_OF_ONE_MESSAGE]=0;
+    	(void)TestGraphics_drawString(BufferText1, 0, 213, YELLOW, BLACK, 4);
+    	lastMessageIndex = messageIndex;
+    }
+
+    /* show the log file number */
+    uint16_t logfilenumber;
+    logfilenumber=rawmessage67A[7];
+    logfilenumber<<=8;
+    logfilenumber|=rawmessage67A[6];
+    sprintf(BufferText1, "#%d", logfilenumber);
+    (void)TestGraphics_drawString(BufferText1, 220, 144, YELLOW, BLACK, 4);
+
 
     if ((nNumberOfReceivedMessages & 0x08)) {
   	  ILI9341_DrawRectangle(310, 0, 4, 4, GREENYELLOW);
@@ -636,8 +658,8 @@ void TestGraphics_showPage(void) {
 	//	nCurrentPage++;
 	//	if (nCurrentPage>2) nCurrentPage = 1;
 	//}
-	uint32_t uptime_s;
-	uptime_s = HAL_GetTick() / 1000; /* the uptime in seconds */
+	//uint32_t uptime_s;
+	//uptime_s = HAL_GetTick() / 1000; /* the uptime in seconds */
 	nCurrentPage=1;
 	uint32_t t;
 	t = HAL_GetTick();
